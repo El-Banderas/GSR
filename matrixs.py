@@ -1,6 +1,8 @@
 
 import numpy as np
 import random
+import schedule
+import time
 
 def print_matrix(matrix, size):
     for row in range(size):
@@ -34,10 +36,21 @@ def generate_random_matrix(input, size):
     return matrix
 
 def convert_int_byte(value):
-    return  (int(value).to_bytes(1, 'big'))[0]
+    if str(value).isnumeric():
+        return  (int(value).to_bytes(1, 'big'))[0]
+    else:
+        return ord(value)
+
+def transpose_lists(matrix, size):
+        result = [[0 for x in range(size)] for y in range(size)] 
+        for i in range(size):
+            # iterate through columns
+            for j in range(size):
+                result[j][i] = matrix[i][j]
+        return result
+
 
 def generate_xor_matrix(m1, m2, m3, m4, size):
-    print("AQUI")
     matrix = [[0 for x in range(size)] for y in range(size)] 
     for line in range(size):
         for col in range(size):
@@ -45,9 +58,17 @@ def generate_xor_matrix(m1, m2, m3, m4, size):
             n2 = convert_int_byte(m2[line][col])
             n3 = convert_int_byte(m3[line][col])
             n4 = convert_int_byte(m4[line][col])
-            print(n1)
             matrix[line][col] = ((n1 ^ n2) ^ n3) ^ n4
     return matrix
+
+def generate_key(array1, array2, size):
+    key = [0 for x in range(size)]
+    for position in range(size):
+        n1 = convert_int_byte(array1[position])
+        n2 = convert_int_byte(array2[position])
+        key[position] = (n1 ^ n2) 
+    return key
+
 
 class Matrixs:
     def __init__(self, dictionary):
@@ -63,11 +84,44 @@ class Matrixs:
         self.ZB = []
         self.ZC = []
         self.ZD = []
-        self.Z = []
+        self.Z = np.empty((self.K, self.K))
         self.generate_matrixes()
+        self.n_updates = 0
 
+    def update_matrix(self):
+        self.n_updates+=1
+        print("Atualizar matrizes? " , self.n_updates)
+        # Como não é especificado o valor do i, eu rodo todas as linhas
+        
+        # Seja Zi* a linha i de Z, i.e., Zi*[j] = Z[i,j], atualizar a matriz Z de acordo com
+        # Zi* = rotate(Zi*,random(Z[i,0],0,K-1));
+        for i in range(self.size):
+            random.seed(self.Z[i][0])
+            self.Z[i] = rotate(self.Z[i], random.randint(0, self.size - 1))
+        self.Z = transpose_lists(self.Z, self.size)
+        
+
+        for i in range(self.size):
+            random.seed(self.Z[i][0])
+            self.Z[i] = rotate(self.Z[i], random.randint(0, self.size - 1))
+        
+        self.Z = transpose_lists(self.Z, self.size)
+
+
+    def get_key(self):
+        self.update_matrix()
+        random.seed(self.n_updates +self.Z[0][0])
+        i = random.randint(0, self.size - 1)
+
+        random.seed(self.Z[i][0])
+        j = random.randint(0, self.size - 1)
+        column_j = [row[j] for row in self.Z]
+        key = generate_key(self.Z[i], column_j, self.size )
+        print(key)
+        return key
 
     def generate_matrixes(self):
+        self.size = self.K
         self.ZA = generate_simple_matrix(self.M1, self.K)
         self.ZB = generate_simple_matrix(self.M2, self.K).transpose()
         
@@ -88,6 +142,7 @@ class Matrixs:
         self.Z = generate_xor_matrix(self.ZA, self.ZB, self.ZC, self.ZD, self.K)
         print("Z")
         print_matrix(self.Z, self.K)
+
         
 
     
