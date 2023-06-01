@@ -1,8 +1,6 @@
 
 import numpy as np
 import random
-import schedule
-import time
 
 def print_matrix(matrix, size):
     for row in range(size):
