@@ -1,11 +1,10 @@
 from asyncio import Event
 import re
 from matrixs import Matrixs
-from server import parse_message
+from server import parse_message, create_response
 from tables import *
 import socket
 from update_keys import Update_Keys
-from server import *
 
 default_file = "./input.txt"
 
@@ -47,23 +46,8 @@ def run_server(matrixs, tables):
         message = format(bytesAddressPair[0])
 
         address = bytesAddressPair[1]
-        if "GET" in message :
-            print("Recebeu um get")
-            matrixs.get_key()
-            print("Porta client: ")
-            print(bytesAddressPair)
-        elif "SET" in message :
-            print("Recebeu um set")
-        else: 
-            # (S, Ns, list_Sec, P, Y, N, list_args) = parse_message(message)
-            request = parse_message(message)
-            handle_request(matrixs, tables, request, address)
-            # Get
-        #clientMsg = "Message from Client:{}".format(message)
-        #clientIP  = "Client IP Address:{}".format(address)
-        
-        #print(clientMsg)
-        #print(clientIP)
+        request = parse_message(message)
+        handle_request(matrixs, tables, request, address)
         
         # Sending a reply to client
         UDPServerSocket.sendto(bytesToSend, address)
@@ -73,16 +57,21 @@ def handle_request(matrixs, tables, request, address):
     if request.Y == "2":
         print("Set")
         for (ooid, num) in request.list_args:
-            if ooid == '3.2.6.0':
+            if ooid == '3.2.6.0' and int(num) == 1:
                 print("Get key :)") 
                 key = matrixs.get_key()
-                (ooid, keyVisibility) = tables.add_key(key, request.P, 0)
+                # Convert key to string
+                key = list(map(lambda byte : str(byte), key))
+                (ooid, keyVisibility) = tables.add_key("|".join(key), request.P, 0)
                 response = create_response(request.P,[(ooid, keyVisibility)],[])
                 UDPServerSocket.sendto(bytes(response, 'utf-8'), address)
-                
+            else:
+                print("SET NOT ADD KEY")
+                pass
 
     if request.Y == "1":
         print("Get")
+        info_to_response = tables.get_values(request.list_args, request.P)
 
 
 

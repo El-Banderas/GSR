@@ -10,6 +10,8 @@ class Request:
         self.N = N
         self.list_args = []
         list_args_separated = list_args.split(",") 
+        print("Lista argumentos")
+        print(list_args_separated)
         for x in range(0, len(list_args_separated), 2):
             # Get address
             ooid = re.search('((\d+\.)*\d+)' ,list_args_separated[x])

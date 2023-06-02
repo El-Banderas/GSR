@@ -1,8 +1,20 @@
 
-from time import time 
 from datetime import date, datetime, timedelta
+from errors import errors_dic
+
+def print_table(matrix):
+    print("TABLE: ")
+    for row in matrix:
+        for column in row:
+            print(column, end=";")
+        print()
+
 
 class Tables:
+    
+
+    ###########  INIT TABLES ########
+
 
     def init_system(self, params):
         today = date.today()
@@ -15,19 +27,22 @@ class Tables:
         self.system = ["system" , today_string, time, params['K'], params['T'],  params['X'],  params['V']]
         self.keys_time_to_live = params['V']
 
-    # TODO
+    # Depois verificar se realmente usamos 255 coisas
     def init_config(self, params):
-        self.config = ["config", params['M']]
+        self.config = ["config", params['M'], "0", "255", ]
 
     #  dataNumberOfValidKeys | dataTableGeneratedKeys
     def init_data(self):
         dataNumberOfValidKeys = 0
-        dataTableGeneratedKeysEntry = []
+        dataTableGeneratedKeysEntry = ["---"]
         self.data = ["data", dataNumberOfValidKeys, dataTableGeneratedKeysEntry]
+
+    ###########  ADD KEY TO TABLES ########
 
     # Key ID will be the line
     def add_key(self, keyValue, keyRequestor, keyVisibility ):
         current_line = self.data[1]
+        self.data[1] = self.data[1] + 1
         print("Current line to insert key")
         print(current_line)
 
@@ -37,11 +52,135 @@ class Tables:
         time = int(result.strftime("%H%M%S"))
         print("Will expire in: " + str(date) )
         print(time)
-        self.data[2].append([current_line, keyValue, keyRequestor, date, time, keyVisibility])
+        # We add --- in the beggining because the position 0 should not be read.
+        self.data[2].append(["---", current_line, keyValue, keyRequestor, date, time, keyVisibility])
         ooid = "3.2." + str(current_line) + ".0"
+        print_table(self.data[2])
         return (ooid, keyVisibility)
 
 
+    ###########  GET VALUES FROM TABLES ########
+     # Return (ooid, value,error)
+     # System and config are similiar tables, so it's possible to join them.
+    def get_config_or_system(self, ooid, value, table, number_table, requestor):
+        print("Config|System table")
+        print(table)
+        ids_values = []
+        errors = []
+        for i in range(int(value)):
+            
+            if len(ooid) == 2:
+                column = ooid[0]+i
+                if column >= len(table):
+                    errors.append("invalid ooid")
+                    return (ids_values, errors)
+                instance = ooid[1]
+                current_ooid =  ".".join([number_table, str(column), str(instance)])
+                if instance != 0:
+                    errors.append((current_ooid,"ooid not instance"))
+                else:
+                    ids_values.append((current_ooid,table[column] ))
+            else:
+                errors.append("invalid ooid")
+        return (ids_values, errors)
+    
+    # Normal ooid: 
+    #(0) First number: [1,2]
+    #(1) Second number: [1, max number of keys]
+    #(2) Third number: [1, 6]
+    #(3) Fourth number: 0
+    def get_next_ooid_data_table(self, ooid):
+        if ooid == [ 1,0]:
+            return [2,1, 0]
+        # Strange ooids, that are out of the table
+        if ooid[0] > 2 or ooid[1] > 6:
+            return None
+        else:
+            if ooid[2] < 6:
+                return [ooid[0], ooid[1], ooid[2]+1 ,0 ]
+            if ooid[1] < len(self.data[2]):
+                return [ooid[0], ooid[1]+1, 1, 0]
+        return None
+
+    # Return (ooid, value, error)
+    def get_data_value_by_ooid(self, ooid):
+        print(self.data)
+        print("OOID")
+        print(ooid)
+        if ooid == [ 1,0]:
+            print("Return table size")
+            return (self.data[0], None)
+        else:
+            # I could use the "dataNumberOfValidKeys", but I prefer this method.
+            numer_lines = len(self.data[2])
+
+            line = ooid[1]
+            column = ooid[2]
+            if line > numer_lines or column > 6 or line < 1:
+                print("Strange request: ", line)
+                print(column)
+                print(numer_lines)
+                return ([], "invalid ooid")
+            else:
+                print("Devolve cenas:")
+                print(self.data[2][line][column])
+                return ((".".join(["3.2", str(line), str(column)]), self.data[2][line][column]), None)
+
+    def get_data(self, ooid, value, requestor):
+        ooids_values = []
+        errors = []
+        for i in range(int(value) ):
+            (value_ooid,  error) = self.get_data_value_by_ooid(ooid)
+            ooids_values.extend(value_ooid)
+            if error:
+                errors.append(error)
+            print("Next ooid before")
+            print(ooid)
+            ooid = self.get_next_ooid_data_table(ooid)
+            print("NEXT OOID")
+            print(ooid)
+            if ooid == None:
+                break 
+            
+        print("Devolve")
+        print(ooids_values)
+        print(errors)
+        return ()
+
+    def get_values(self, list_ooids, requestor):
+        errors_final = []
+        ids_values_final = []
+        print("GET nas tables")
+        for (ooid_string, value) in list_ooids:
+
+            ooid = ooid_string.split(".")
+            ooid = list(map(lambda x : int(x), ooid))
+            if ooid[0] == 1:
+                print("SYSTEM")
+                ooid = ooid[1:]
+                (ids_values, errors) = self.get_config_or_system(ooid, value, self.system, "1" , requestor)
+                ids_values_final.extend(ids_values)
+                errors_final.extend(errors)
+            elif ooid[0] == 2:
+                print("CONFIG")
+                ooid = ooid[1:]
+                (ids_values, errors) = self.get_config_or_system(ooid, value, self.config, "2" , requestor)
+                ids_values_final.extend(ids_values)
+                errors_final.extend(errors)
+
+            elif ooid[0] == 3:
+                print("KEYS")
+                ooid = ooid[1:]
+                self.get_data(ooid, value, requestor)
+            else:
+                print("Error")
+                errors.append(errors_dic["invalid ooid"], ooid_string)
+        print("Resposta:")
+        print(ids_values_final)
+        print(errors_final)
+
+
+        return None
 
     def __init__(self, params):
 
@@ -49,6 +188,4 @@ class Tables:
         self.init_config(params)
         self.init_data()
 
-    def update_matrix(self):
-        print("Atualizar matrizes? " , -1)
  
