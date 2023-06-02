@@ -55,20 +55,35 @@ def run_server(matrixs, tables):
 def handle_request(matrixs, tables, request, address):
     print("Handle request")
     if request.Y == "2":
+        pairs_ooids_values = []
+        errors = []
         print("Set")
         for (ooid, num) in request.list_args:
+            # To generate a key, you must have a number one as value
             if ooid == '3.2.6.0' and int(num) == 1:
                 print("Get key :)") 
                 key = matrixs.get_key()
                 # Convert key to string
                 key = list(map(lambda byte : str(byte), key))
-                (ooid, keyVisibility) = tables.add_key("|".join(key), request.P, 0)
-                response = create_response(request.P,[(ooid, keyVisibility)],[])
+                (pair_ooid_value, error) = tables.add_key("|".join(key), request.P, 0)
+                # TODO: Depois isto só é feito no fim :)
+                response = create_response(request.P,[pair_ooid_value],[])
                 UDPServerSocket.sendto(bytes(response, 'utf-8'), address)
+                pairs_ooids_values.extend(pair_ooid_value)
+                if len(error) > 0:
+                    error = (ooid, error)
+                errors.extend(error)
             else:
                 print("SET NOT ADD KEY")
-                pass
-
+                (pair_ooid_value, error) = tables.set_values(ooid, num, request.P)
+                pairs_ooids_values.extend(pair_ooid_value)
+                if len(error) > 0:
+                    error = (ooid, error)
+                errors.extend(error)
+        print("Devolve")
+        print(pairs_ooids_values)
+        print(errors)
+        return
     if request.Y == "1":
         print("Get")
         info_to_response = tables.get_values(request.list_args, request.P)

@@ -41,8 +41,8 @@ class Tables:
 
     # Key ID will be the line
     def add_key(self, keyValue, keyRequestor, keyVisibility ):
-        current_line = self.data[1]
         self.data[1] = self.data[1] + 1
+        current_line = self.data[1]
         print("Current line to insert key")
         print(current_line)
 
@@ -56,7 +56,9 @@ class Tables:
         self.data[2].append(["---", current_line, keyValue, keyRequestor, date, time, keyVisibility])
         ooid = "3.2." + str(current_line) + ".0"
         print_table(self.data[2])
-        return (ooid, keyVisibility)
+        error = []
+        return ([(ooid, keyVisibility)], error)
+
 
 
     ###########  GET VALUES FROM TABLES ########
@@ -104,11 +106,7 @@ class Tables:
 
     # Return (ooid, value, error)
     def get_data_value_by_ooid(self, ooid):
-        print(self.data)
-        print("OOID")
-        print(ooid)
         if ooid == [ 1,0]:
-            print("Return table size")
             return (self.data[0], None)
         else:
             # I could use the "dataNumberOfValidKeys", but I prefer this method.
@@ -117,13 +115,8 @@ class Tables:
             line = ooid[1]
             column = ooid[2]
             if line > numer_lines or column > 6 or line < 1:
-                print("Strange request: ", line)
-                print(column)
-                print(numer_lines)
                 return ([], "invalid ooid")
             else:
-                print("Devolve cenas:")
-                print(self.data[2][line][column])
                 return ((".".join(["3.2", str(line), str(column)]), self.data[2][line][column]), None)
 
     def get_data(self, ooid, value, requestor):
@@ -134,18 +127,14 @@ class Tables:
             ooids_values.extend(value_ooid)
             if error:
                 errors.append(error)
-            print("Next ooid before")
-            print(ooid)
             ooid = self.get_next_ooid_data_table(ooid)
-            print("NEXT OOID")
-            print(ooid)
             if ooid == None:
                 break 
             
         print("Devolve")
         print(ooids_values)
         print(errors)
-        return ()
+        return (ooids_values, errors)
 
     def get_values(self, list_ooids, requestor):
         errors_final = []
@@ -171,7 +160,9 @@ class Tables:
             elif ooid[0] == 3:
                 print("KEYS")
                 ooid = ooid[1:]
-                self.get_data(ooid, value, requestor)
+                (ids_values, errors) = self.get_data(ooid, value, requestor)
+                ids_values_final.extend(ids_values)
+                errors_final.extend(errors)
             else:
                 print("Error")
                 errors.append(errors_dic["invalid ooid"], ooid_string)
@@ -180,7 +171,76 @@ class Tables:
         print(errors_final)
 
 
-        return None
+        return (ids_values_final, errors_final)
+
+
+    ###########  SET VALUES FROM TABLES ########
+    # OOID 
+    # 0 -> Table 
+    # 1 -> Line 
+    # 2 -> Value 0, instance 
+    def set_config_or_system(self, ooid, value, table):
+        print("Config|System table")
+        print(table)
+        if len(ooid) != 3 or ooid[2] != 0:
+            return ([] , "invalid ooid") 
+        column = ooid[1]
+        instance = ooid[2]
+        current_ooid =  ".".join([str(ooid[0]), str(column), str(instance)])
+        if len(ooid) == 3:
+            if column >= len(table):
+                return ([],  "invalid ooid")
+            else:
+                table[column] = value
+                print("After change")
+                print(table)
+                return ([(current_ooid,table[column])], [] )
+        else:
+            return ([], "invalid ooid")
+    
+    # OOID -> Not create key, process more complex
+    # 0 -> 3, keys
+    # 1 -> 2 (size table is read-only, should be implemented other way...) 
+    # 2 -> line
+    # 3 -> column [1, 6]
+    # 4 -> Value 0, instance 
+    def set_keys_table(self, ooid, value, table):
+        print("Keys Table")
+        print(table)
+        if len(ooid) != 5 or ooid[1] != 2 or ooid[4] != 0:
+            return ([], "invalid ooid") 
+        line = ooid[2]
+        column = ooid[3]
+        ooid_strings = list(map(lambda num : str(num), ooid))
+        current_ooid =  ".".join([*ooid_strings])
+        if line >= len(table):
+            return ([], "invalid ooid")
+        else:
+            table[line][column] = int(value)
+            print("After change")
+            print(table)
+            return ([(current_ooid,table[line][column])], [] )
+
+
+    def set_values(self, ooid, value, requestor):
+        print("SET nas tables")
+
+        ooid = ooid.split(".")
+        ooid = list(map(lambda x : int(x), ooid))
+        if ooid[0] == 1:
+            print("SYSTEM")
+            return self.set_config_or_system(ooid, value, self.system)
+        elif ooid[0] == 2:
+            print("CONFIG")
+            return self.set_config_or_system(ooid, value, self.config )
+
+        elif ooid[0] == 3:
+            print("KEYS")
+            return self.set_keys_table(ooid, value, self.data[2] )
+        else:
+
+            return ([],"invalid ooid" )
+
 
     def __init__(self, params):
 
