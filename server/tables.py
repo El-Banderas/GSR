@@ -39,21 +39,42 @@ class Tables:
 
     ###########  ADD KEY TO TABLES ########
 
+    def clean_old_keys(self):
+        print("Clean old keys")
+        now = datetime.today()
+        date_now = int(now.strftime("%y%m%d"))
+        time_now = int(now.strftime("%H%M%S"))
+        number_deleted_keys = 0
+        for index, key_info in enumerate(self.data[2][1:]):
+            date_key = key_info[4]
+            time_key = key_info[5]
+            if date_key < date_now or time_key < time_now:
+                print("Delete key")
+                del self.data[2][index-number_deleted_keys]
+                number_deleted_keys+=1
+        # Update number of keys in table
+        self.data[1] = len(self.data[2]) - 1
+        return number_deleted_keys
+        
+
+
     # Key ID will be the line
     def add_key(self, keyValue, keyRequestor, keyVisibility ):
-        self.data[1] = self.data[1] + 1
+        # Compare current number of keys with maximum:
+        if (self.data[1] >= self.system[5] -1):
+            # If maximum achieved, check if we can clean old keys
+            n_deleted_keys = self.clean_old_keys()
+            if n_deleted_keys == 0:
+                return ([], "Maximum number of keys attributed")
         current_line = self.data[1]
-        print("Current line to insert key")
-        print(current_line)
 
         now = datetime.today()
         result = now + timedelta(seconds=self.keys_time_to_live)
         date = int(result.strftime("%y%m%d"))
         time = int(result.strftime("%H%M%S"))
-        print("Will expire in: " + str(date) )
-        print(time)
         # We add --- in the beggining because the position 0 should not be read.
         self.data[2].append(["---", current_line, keyValue, keyRequestor, date, time, keyVisibility])
+        self.data[1] = len(self.data[2]) - 1
         ooid = "3.2." + str(current_line) + ".0"
         print_table(self.data[2])
         error = []

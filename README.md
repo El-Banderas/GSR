@@ -23,10 +23,9 @@ Como correr get (na pasta do cliente):
 - Proibir: "não é permitido que durante V segundos o gestor identifique outro pedido com o mesmo I-ID, sendo aconselhável que o gestor não utilize valores para os I-ID repetidos num intervalo temporal muito maior que V segundos" (última parte com dúvidas...)
 
 - É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 1, com "endereço completo", exceto chaves
+- Nós podemos estar a limpar chaves, alterando o identificador delas (que é a linha atual), e assim o cliente perde a referência para a sua chave
 
 - Servidor responder pedidos ao clientem os dois darem parse
-- Falta limparkeys que expiram validade, e alterar a linha da tabela. Também tirar 0 do ooid
-
 
 - Mudar para bytes, as keys ;)
 - MIB da config mal?
