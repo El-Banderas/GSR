@@ -1,13 +1,29 @@
 
 from datetime import date, datetime, timedelta
 from errors import errors_dic
+from table_entry import Entry
 
 def print_table(matrix):
     print("TABLE: ")
-    for row in matrix:
-        for column in row:
-            print(column, end=";")
+    for row in matrix[1:]:
+        for column in row[1:]:
+            if isinstance(column, str):
+                print(column, end=";")
+            else:
+                print(column.value, end=";")
+            
         print()
+
+def print_simple_table(matrix):
+    print("TABLE: ")
+    for column in matrix:
+        if isinstance(column, str):
+            print(column, end=";")
+        else:
+            print(column.value, end=";")
+    print()
+            
+
 
 
 class Tables:
@@ -24,21 +40,35 @@ class Tables:
 
         # systemRestartDate (1) |  systemRestartTime (2)  |    systemKeySize (3) |  systemIntervalUpdate (4)
         # systemMaxNumberOfKeys (5) |  systemKeysTimeToLive (6)
-        self.system = ["system" , today_string, time, params['K'], params['T'],  params['X'],  params['V']]
+        self.system = ["system" , 
+                       Entry(today_string,  "ro", None),
+                       Entry(time,  "ro", None),
+                       Entry(params['K'],  "rw", None),
+                       Entry(params['T'],  "rw", None),
+                       Entry(params['X'],  "rw", None),
+                       Entry(params['V'],  "rw", None),
+                       ]
         self.keys_time_to_live = params['V']
 
     # Depois verificar se realmente usamos 255 coisas
     def init_config(self, params):
-        self.config = ["config", params['M'], "0", "255", ]
+        self.config = ["config", 
+                       Entry(params['M'],  "rw", None),
+                       Entry("0",  "rw", None),
+                       Entry("255",  "rw", None),
+                       ]
 
     #  dataNumberOfValidKeys | dataTableGeneratedKeys
     def init_data(self):
         dataNumberOfValidKeys = 0
         dataTableGeneratedKeysEntry = ["---"]
-        self.data = ["data", dataNumberOfValidKeys, dataTableGeneratedKeysEntry]
+        self.data = ["data", 
+                    Entry(dataNumberOfValidKeys,  "ro", None),
+                    dataTableGeneratedKeysEntry
+                    ]
 
     ###########  ADD KEY TO TABLES ########
-
+    # Here we don't need to check authorizations
     def clean_old_keys(self):
         print("Clean old keys")
         now = datetime.today()
@@ -46,14 +76,14 @@ class Tables:
         time_now = int(now.strftime("%H%M%S"))
         number_deleted_keys = 0
         for index, key_info in enumerate(self.data[2][1:]):
-            date_key = key_info[4]
-            time_key = key_info[5]
+            date_key = key_info[4].value()
+            time_key = key_info[5].value()
             if date_key < date_now or time_key < time_now:
                 print("Delete key")
                 del self.data[2][index-number_deleted_keys]
                 number_deleted_keys+=1
         # Update number of keys in table
-        self.data[1] = len(self.data[2]) - 1
+        self.data[1].value = len(self.data[2]) - 1
         return number_deleted_keys
         
 
@@ -61,7 +91,7 @@ class Tables:
     # Key ID will be the line
     def add_key(self, keyValue, keyRequestor, keyVisibility ):
         # Compare current number of keys with maximum:
-        if (self.data[1] >= self.system[5] -1):
+        if (self.data[1].value >= self.system[5].value -1):
             # If maximum achieved, check if we can clean old keys
             n_deleted_keys = self.clean_old_keys()
             if n_deleted_keys == 0:
@@ -73,8 +103,15 @@ class Tables:
         date = int(result.strftime("%y%m%d"))
         time = int(result.strftime("%H%M%S"))
         # We add --- in the beggining because the position 0 should not be read.
-        self.data[2].append(["---", current_line, keyValue, keyRequestor, date, time, keyVisibility])
-        self.data[1] = len(self.data[2]) - 1
+        self.data[2].append(["---", 
+                            self.data[1],
+                            Entry(keyValue,  "ro", keyRequestor),
+                            Entry(keyRequestor,  "ro", keyRequestor),
+                            Entry(date,  "ro", keyRequestor),
+                            Entry(time,  "ro", keyRequestor),
+                            Entry(keyVisibility,  "rw", keyRequestor),
+                             ])
+        self.data[1] = Entry(len(self.data[2]) - 1,  "ro", None)
         ooid = "3.2." + str(current_line) + ".0"
         print_table(self.data[2])
         error = []
@@ -85,6 +122,7 @@ class Tables:
     ###########  GET VALUES FROM TABLES ########
      # Return (ooid, value,error)
      # System and config are similiar tables, so it's possible to join them.
+     # Here we don't have authorization problems, so we don't need to check.
     def get_config_or_system(self, ooid, value, table, number_table, requestor):
         print("Config|System table")
         print(table)
@@ -126,7 +164,7 @@ class Tables:
         return None
 
     # Return (ooid, value, error)
-    def get_data_value_by_ooid(self, ooid):
+    def get_data_value_by_ooid(self, ooid, requestor):
         if ooid == [ 1,0]:
             return (self.data[0], None)
         else:
@@ -138,13 +176,17 @@ class Tables:
             if line > numer_lines or column > 6 or line < 1:
                 return ([], "invalid ooid")
             else:
-                return ((".".join(["3.2", str(line), str(column)]), self.data[2][line][column]), None)
+                entry = self.data[2][line][column]
+                if entry.check_to_read(requestor):
+                    return ((".".join(["3.2", str(line), str(column)]), entry.value), None)
+                else:
+                    return ([], "No permissions to see")
 
     def get_data(self, ooid, value, requestor):
         ooids_values = []
         errors = []
         for i in range(int(value) ):
-            (value_ooid,  error) = self.get_data_value_by_ooid(ooid)
+            (value_ooid,  error) = self.get_data_value_by_ooid(ooid, requestor)
             ooids_values.extend(value_ooid)
             if error:
                 errors.append(error)
@@ -212,10 +254,15 @@ class Tables:
             if column >= len(table):
                 return ([],  "invalid ooid")
             else:
-                table[column] = value
+                value = table[column]
+                # Anyone can change this value
+                (changed, maybeError) = value.check_to_change(None, value)
                 print("After change")
-                print(table)
-                return ([(current_ooid,table[column])], [] )
+                print_simple_table(table)
+                if changed:
+                    return ([(current_ooid, value.value)], [] )
+                else:
+                    return ([],  maybeError)
         else:
             return ([], "invalid ooid")
     
@@ -225,9 +272,8 @@ class Tables:
     # 2 -> line
     # 3 -> column [1, 6]
     # 4 -> Value 0, instance 
-    def set_keys_table(self, ooid, value, table):
+    def set_keys_table(self, ooid, value, table, requestor):
         print("Keys Table")
-        print(table)
         if len(ooid) != 5 or ooid[1] != 2 or ooid[4] != 0:
             return ([], "invalid ooid") 
         line = ooid[2]
@@ -237,10 +283,16 @@ class Tables:
         if line >= len(table):
             return ([], "invalid ooid")
         else:
-            table[line][column] = int(value)
+            value = table[line][column]
+            #table[line][column] = int(value)
+            (changed, maybeError) = value.check_to_change(requestor, int(value))
             print("After change")
-            print(table)
-            return ([(current_ooid,table[line][column])], [] )
+            print_table(table)
+            if changed:
+                return ([(current_ooid,value.value)], [] )
+            else:
+                return ([], maybeError)
+
 
 
     def set_values(self, ooid, value, requestor):
@@ -257,7 +309,7 @@ class Tables:
 
         elif ooid[0] == 3:
             print("KEYS")
-            return self.set_keys_table(ooid, value, self.data[2] )
+            return self.set_keys_table(ooid, value, self.data[2], requestor )
         else:
 
             return ([],"invalid ooid" )

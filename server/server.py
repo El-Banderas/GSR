@@ -1,7 +1,7 @@
 import re
 
 class Request:
-    def __init__(self, S, Ns, list_Sec, P, Y, N, list_args):
+    def __init__(self, P, S, Ns, list_Sec,  Y, N, list_args):
         self.S = S
         self.Ns = Ns
         self.list_Sec = list_Sec
@@ -10,8 +10,6 @@ class Request:
         self.N = N
         self.list_args = []
         list_args_separated = list_args.split(",") 
-        print("Lista argumentos")
-        print(list_args_separated)
         for x in range(0, len(list_args_separated), 2):
             # Get address
             ooid = re.search('((\d+\.)*\d+)' ,list_args_separated[x])
@@ -22,9 +20,8 @@ class Request:
 
 
 def parse_message(message):
-    stuff_received = message.split(";")
-    (S, Ns, list_Sec, P, Y, N, list_args) = message.split(";")
-    request = Request(S, Ns, list_Sec, P, Y, N, list_args)
+    (P, S, Ns, list_Sec, Y, N, list_args, checksum) = message.split(";")
+    request = Request(P, S, Ns, list_Sec, Y, N, list_args)
     return request
 
 def create_response(P,W,R):

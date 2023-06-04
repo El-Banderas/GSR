@@ -46,7 +46,7 @@ def run_server(matrixs, tables):
         message = format(bytesAddressPair[0])
 
         address = bytesAddressPair[1]
-        request = parse_message(message)
+        request = parse_message(message[2:-1])
         handle_request(matrixs, tables, request, address)
         
         # Sending a reply to client

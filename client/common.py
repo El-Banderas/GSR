@@ -3,6 +3,7 @@
 S = "0"
 Ns = "0"
 List_Security = []
+checksum = "CHECKSUM"
 
 
 # Type request:
@@ -14,6 +15,9 @@ def make_string_to_send(P, type_request, list_pairs):
             raise Exception(f"Arguments of -l must be pairs: {pair}" )
     string_list_security = ''.join(str(x) for x in List_Security)
     string_list_pairs = '[' + ','.join(str(x) for x in list_pairs) + ']'
-    res = ";".join([S, Ns, string_list_security, P, type_request, str(len(list_pairs)), string_list_pairs])
+    res = ";".join([P, S, Ns, string_list_security, type_request, str(len(list_pairs)), string_list_pairs, checksum])
+    print("Sending")
     print(res)
     return res
+
+
