@@ -47,17 +47,19 @@ def run_server(matrixs, tables):
 
         address = bytesAddressPair[1]
         request = parse_message(message[2:-1])
-        handle_request(matrixs, tables, request, address)
-        
+        (ooids_and_values, errors) = handle_request(matrixs, tables, request, address)
+        print("To send")
+        print(ooids_and_values)
+        print(errors)
+        bytes_to_send = str.encode(create_response(request.P, ooids_and_values, errors))
         # Sending a reply to client
-        UDPServerSocket.sendto(bytesToSend, address)
+        UDPServerSocket.sendto(bytes_to_send, address)
 
 def handle_request(matrixs, tables, request, address):
     print("Handle request")
     if request.Y == "2":
         pairs_ooids_values = []
         errors = []
-        print("Set")
         for (ooid, num) in request.list_args:
             # To generate a key, you must have a number one as value
             if ooid == '3.2.6.0' and int(num) == 1:
@@ -66,27 +68,23 @@ def handle_request(matrixs, tables, request, address):
                 # Convert key to string
                 key = list(map(lambda byte : str(byte), key))
                 (pair_ooid_value, error) = tables.add_key("|".join(key), request.P, 0)
-                # TODO: Depois isto só é feito no fim :)
-                response = create_response(request.P,[pair_ooid_value],[])
-                UDPServerSocket.sendto(bytes(response, 'utf-8'), address)
-                pairs_ooids_values.extend(pair_ooid_value)
+                if len(pair_ooid_value) > 0:
+                    pairs_ooids_values.append(pair_ooid_value)
                 if len(error) > 0:
                     error = (ooid, error)
-                errors.extend(error)
+                    errors.extend(error)
             else:
                 print("SET NOT ADD KEY")
                 (pair_ooid_value, error) = tables.set_values(ooid, num, request.P)
-                pairs_ooids_values.extend(pair_ooid_value)
+                if len(pair_ooid_value) > 0:
+                    pairs_ooids_values.append(pair_ooid_value)
                 if len(error) > 0:
                     error = (ooid, error)
-                errors.extend(error)
-        print("Devolve")
-        print(pairs_ooids_values)
-        print(errors)
-        return
+                    errors.append(error)
+        return (pairs_ooids_values, errors)
     if request.Y == "1":
         print("Get")
-        info_to_response = tables.get_values(request.list_args, request.P)
+        return tables.get_values(request.list_args, request.P)
 
 
 
