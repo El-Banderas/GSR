@@ -75,15 +75,17 @@ class Tables:
         date_now = int(now.strftime("%y%m%d"))
         time_now = int(now.strftime("%H%M%S"))
         number_deleted_keys = 0
-        for index, key_info in enumerate(self.data[2]):
-            if len(key_info) > 4:
-                
-                date_key = key_info[4].value
-                time_key = key_info[5].value
-                if date_key < date_now or time_key < time_now:
-                    print("Delete key")
-                    del self.data[2][index-number_deleted_keys]
-                    number_deleted_keys+=1
+        current_index = 1
+        while current_index < len(self.data[2]):
+            key_info = self.data[2][current_index]
+            date_key = key_info[4].value
+            time_key = key_info[5].value
+            if date_key < date_now or time_key < time_now:
+                print("Delete key")
+                del self.data[2][current_index]
+                number_deleted_keys+=1
+            else:
+                current_index+=1
         # Update number of keys in table
         self.data[1].value = len(self.data[2]) - 1
         return number_deleted_keys
@@ -93,7 +95,7 @@ class Tables:
     # Key ID will be the line
     def add_key(self, keyValue, keyRequestor, keyVisibility ):
         # Compare current number of keys with maximum:
-        if (self.data[1].value >= self.system[5].value -1):
+        if (self.data[1].value >= self.system[5].value ):
             # If maximum achieved, check if we can clean old keys
             n_deleted_keys = self.clean_old_keys()
             if n_deleted_keys == 0:
