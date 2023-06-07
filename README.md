@@ -1,12 +1,14 @@
 # GSR
 
 ## Tests
-Como correr get (na pasta do cliente):
+Start executing the `generate_security_info.py` to generate the keys to clients and servers.
+Then, execute the server, and the following commands serve to execute the client.
 
 ### Gets
 
 - Simple add key (could be used to test max key number) \
 `python client_get.py  -l 3.2.6.0,1 -r SET -id A`
+
 - Test add key and change value of visibility to 5 \
 `python client_get.py  -l 3.2.6.0,1 3.2.6.1.0,5 -r SET -id A`
 
@@ -20,8 +22,13 @@ Como correr get (na pasta do cliente):
 - Test invalid ooid (1º read-only value, 2º 2.4.0 ooid doesn't exist) \
 `python client_get.py -l 1.1.0,1 2.4.0,23 -r SET  -id A`
 
-- Test set key, first two valid, others wrong
+- Test set key, first two valid, others wrong \
 `python client_get.py  -l 3.2.6.0,1 3.2.6.0,1 3.2.2.1.0,5 -r SET -id A`
+
+- User B tries to see user A key \
+`python client_get.py  -l 3.2.6.0,1 -r SET -id A ; python client_get.py  -l 3.2.1.2.0,1 -r GET -id B`
+
+`python client_get.py  -l 3.2.6.0,1 -r SET -id A ; python client_get.py  -l 3.2.6.1.0,4 -r SET -id B`
 ### Coisas que faltam
 
 - Proibir: "não é permitido que durante V segundos o gestor identifique outro pedido com o mesmo I-ID, sendo aconselhável que o gestor não utilize valores para os I-ID repetidos num intervalo temporal muito maior que V segundos" (última parte com dúvidas...)
@@ -35,4 +42,6 @@ Como correr get (na pasta do cliente):
 - É suposto os próximos ooids, nos pedidos, ser por linhas ou por colunas. No slide tem a procurar por colunas, quando é mais que um elemento
 
 - Mudar para bytes, as keys ;)
-- MIB da config mal?
+- Mensagens de erro podem ser como as que tenho?
+- Estrutura do relatório?
+- Ver discord, o meu servidor

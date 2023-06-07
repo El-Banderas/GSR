@@ -1,7 +1,9 @@
 import socket
 import argparse
 from common import make_string_to_send
-
+import sys
+sys.path.append('./../security')
+import security_functions
 
 def pair(arg):
     return arg.split(',')
@@ -13,11 +15,25 @@ argParser.add_argument("-r", "--type_request", help="Type of request (GET or SET
 argParser.add_argument("-id", "--client-identifier", help="Identifier to set keys and haver permissions.", required=True, action="store",type=str) 
 
 
+
 serverAddressPort   = ("127.0.0.1", 20001)
 fakeAddress   = ("127.0.1.1", 20102)
 
 bufferSize          = 1024
 args = argParser.parse_args()
+
+name_file_with_key = f'../client/{args.client_identifier}.key'
+#name_file_with_key = f'../client/Cli2.key'
+
+# TODO: Remover segundo argumento para obrigar a inserir password. Password pode ser configurável
+# Está em comentário duas linhas a seguir
+cipher = security_functions.get_cipher(name_file_with_key, args.client_identifier)
+#cipher = security_functions.get_cipher(name_file_with_key, "Cli2")
+if not cipher:
+    quit()
+
+checksum = security_functions.generate_encrypted_checksum(cipher)
+
 
 type_request = -1
 if args.type_request == "GET":
@@ -36,7 +52,7 @@ UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 print("Pares")
 print(args.list)
 
-request_string = make_string_to_send(args.client_identifier, str(type_request), args.list)
+request_string = make_string_to_send(args.client_identifier, str(type_request), args.list, checksum)
 
 
 # Send to server using created UDP socket

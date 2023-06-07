@@ -128,6 +128,8 @@ class Matrixs:
         self.ZD = generate_random_matrix(self.ZB, self.K)
 
 
+        self.Z = generate_xor_matrix(self.ZA, self.ZB, self.ZC, self.ZD, self.K)
+        '''
         print("Z A")
         print_matrix(self.ZA, self.K)
         print("Z B")
@@ -137,9 +139,9 @@ class Matrixs:
         print_matrix(self.ZC, self.K)
         print("Z D")
         print_matrix(self.ZD, self.K)
-        self.Z = generate_xor_matrix(self.ZA, self.ZB, self.ZC, self.ZD, self.K)
         print("Z")
         print_matrix(self.Z, self.K)
+        '''
 
         
 

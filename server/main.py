@@ -1,10 +1,12 @@
 from asyncio import Event
 import re
 from matrixs import Matrixs
-from server import parse_message, create_response
+from server import parse_message, create_response, create_error_message
 from tables import *
 import socket
 from update_keys import Update_Keys
+from server_security import Security
+
 
 default_file = "./input.txt"
 
@@ -33,7 +35,7 @@ bytesToSend         = str.encode(msgFromServer)
 
 print("UDP server up and listening")
 
-def run_server(matrixs, tables):
+def run_server(matrixs, tables, security):
     # Create a datagram socket
     global UDPServerSocket
     UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -47,13 +49,18 @@ def run_server(matrixs, tables):
 
         address = bytesAddressPair[1]
         request = parse_message(message[2:-1])
-        (ooids_and_values, errors) = handle_request(matrixs, tables, request, address)
-        print("To send")
-        print(ooids_and_values)
-        print(errors)
-        bytes_to_send = str.encode(create_response(request.P, ooids_and_values, errors))
-        # Sending a reply to client
-        UDPServerSocket.sendto(bytes_to_send, address)
+        valid = security.verify_checksum(request.P, request.checksum)
+        if valid:
+            (ooids_and_values, errors) = handle_request(matrixs, tables, request, address)
+            print("To send")
+            print(ooids_and_values)
+            print(errors)
+            bytes_to_send = str.encode(create_response(request.P, ooids_and_values, errors))
+            # Sending a reply to client
+            UDPServerSocket.sendto(bytes_to_send, address)
+        else:
+            bytes_to_send = str.encode(create_error_message(request.P, "user not authenticated"))
+            UDPServerSocket.sendto(bytes_to_send, address)
 
 def handle_request(matrixs, tables, request, address):
     print("Handle request")
@@ -97,7 +104,8 @@ if __name__ == "__main__":
     thread = Update_Keys(matrixs, params['T'])
     thread.start()
     tables = Tables(params)
-    run_server(matrixs, tables)
+    security = Security() 
+    run_server(matrixs, tables, security)
 
 
 
