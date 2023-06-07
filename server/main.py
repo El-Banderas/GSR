@@ -76,7 +76,7 @@ def handle_request(matrixs, tables, request, address):
                 key = list(map(lambda byte : str(byte), key))
                 (pair_ooid_value, error) = tables.add_key("|".join(key), request.P, 0)
                 if len(pair_ooid_value) > 0:
-                    pairs_ooids_values.append(pair_ooid_value)
+                    pairs_ooids_values.extend(pair_ooid_value)
                 if len(error) > 0:
                     error = (ooid, error)
                     errors.extend(error)

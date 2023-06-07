@@ -119,7 +119,7 @@ class Tables:
         ooid = "3.2.6." + str(current_line) + ".0"
         print_table(self.data[2])
         error = []
-        return ([(ooid, keyVisibility)], error)
+        return ([(ooid, str(keyVisibility))], error)
 
 
 
@@ -144,7 +144,7 @@ class Tables:
                 if instance != 0:
                     errors.append((current_ooid,"ooid not instance"))
                 else:
-                    ids_values.append((current_ooid,table[column].value ))
+                    ids_values.append((current_ooid,str(table[column].value) ))
             else:
                 errors.append("invalid ooid")
         return (ids_values, errors)
@@ -186,7 +186,7 @@ class Tables:
             else:
                 entry = self.data[2][line][column]
                 if entry.check_to_read(requestor):
-                    pair = (".".join(["3.2", str(line), str(column), "0"]), entry.value)
+                    pair = (".".join(["3.2", str(line), str(column), "0"]), str(entry.value))
                     return (pair, None)
                 else:
                     return ([], (current_ooid,"No permissions to see"))
@@ -196,7 +196,8 @@ class Tables:
         errors = []
         for i in range(int(value) ):
             (value_ooid,  error) = self.get_data_value_by_ooid(ooid, requestor)
-            ooids_values.append(value_ooid)
+            if len(value_ooid) > 1:
+                ooids_values.append(value_ooid)
             if error:
                 errors.append(error)
             ooid = self.get_next_ooid_data_table(ooid)
