@@ -15,6 +15,9 @@ class Entry:
     # Check if the given agent can see the entrance
     def check_to_read(self, agent):
         if self.creator is not None:
+            print("Veirify")
+            print(self.creator)
+            print(agent)
             return self.creator == agent
         else: 
             return True

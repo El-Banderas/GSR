@@ -172,13 +172,13 @@ class Tables:
         print("Get data")
         print(ooid)
         if ooid == [ 1,0]:
-            return (self.data[0].value, None)
+            return ([("3.1.0",str(self.data[1].value))], None)
         else:
             # I could use the "dataNumberOfValidKeys", but I prefer this method.
             numer_lines = len(self.data[2])
 
-            line = ooid[1]
-            column = ooid[2]
+            line = ooid[2]
+            column = ooid[1]
             convert_ooid_to_string = list(map(lambda num : str(num), ooid))
             current_ooid = ".".join(["3"]+convert_ooid_to_string)
             if line >= numer_lines or column > 6 or line < 1 or column < 0:
@@ -196,7 +196,7 @@ class Tables:
         errors = []
         for i in range(int(value) ):
             (value_ooid,  error) = self.get_data_value_by_ooid(ooid, requestor)
-            if len(value_ooid) > 1:
+            if len(value_ooid) > 0:
                 ooids_values.append(value_ooid)
             if error:
                 errors.append(error)
@@ -284,6 +284,8 @@ class Tables:
     # 4 -> Value 0, instance 
     def set_keys_table(self, ooid, value, table, requestor):
         print("Keys Table")
+        if ooid == [3,1,0]:
+            return ([], "Setting to read-only value") 
         if len(ooid) != 5 or ooid[1] != 2 or ooid[4] != 0:
             return ([], "invalid ooid") 
         column = ooid[2]

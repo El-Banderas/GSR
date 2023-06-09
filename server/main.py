@@ -78,8 +78,8 @@ def handle_request(matrixs, tables, request, address):
                 if len(pair_ooid_value) > 0:
                     pairs_ooids_values.extend(pair_ooid_value)
                 if len(error) > 0:
-                    error = (ooid, error)
-                    errors.extend(error)
+                    error = (str(ooid), str(error))
+                    errors.append(error)
             else:
                 print("SET NOT ADD KEY")
                 (pair_ooid_value, error) = tables.set_values(ooid, num, request.P)

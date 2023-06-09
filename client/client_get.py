@@ -41,8 +41,6 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
     # Create a UDP socket at client side
 
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    print("Pares")
-    print(arg_list)
 
     request_string = make_string_to_send(client_identifier, str(type_request), arg_list, checksum)
 

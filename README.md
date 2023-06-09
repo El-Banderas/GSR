@@ -46,3 +46,5 @@ Then, execute the server, and the following commands serve to execute the client
 - Mensagens de erro podem ser como as que tenho?
 - Estrutura do relatório?
 - Ver discord, o meu servidor
+
+- Falta testar ir buscar vários valores à tabela dos dados
