@@ -41,21 +41,21 @@ class Tables:
         # systemRestartDate (1) |  systemRestartTime (2)  |    systemKeySize (3) |  systemIntervalUpdate (4)
         # systemMaxNumberOfKeys (5) |  systemKeysTimeToLive (6)
         self.system = ["system" , 
-                       Entry(today_string,  "ro", None),
-                       Entry(time,  "ro", None),
-                       Entry(params['K'],  "rw", None),
-                       Entry(params['T'],  "rw", None),
-                       Entry(params['X'],  "rw", None),
-                       Entry(params['V'],  "rw", None),
+                       Entry(today_string,  "ro", None, 'int'),
+                       Entry(time,  "ro", None, 'int'),
+                       Entry(params['K'],  "rw", None, 'int'),
+                       Entry(params['T'],  "rw", None, 'int'),
+                       Entry(params['X'],  "rw", None, 'int'),
+                       Entry(params['V'],  "rw", None, 'int'),
                        ]
         self.keys_time_to_live = params['V']
 
     # Depois verificar se realmente usamos 255 coisas
     def init_config(self, params):
         self.config = ["config", 
-                       Entry(params['M'],  "rw", None),
-                       Entry("0",  "rw", None),
-                       Entry("255",  "rw", None),
+                       Entry(params['M'],  "rw", None, 'str'),
+                       Entry("0",  "rw", None, 'int'),
+                       Entry("255",  "rw", None, 'int'),
                        ]
 
     #  dataNumberOfValidKeys | dataTableGeneratedKeys
@@ -63,7 +63,7 @@ class Tables:
         dataNumberOfValidKeys = 0
         dataTableGeneratedKeysEntry = ["---"]
         self.data = ["data", 
-                    Entry(dataNumberOfValidKeys,  "ro", None),
+                    Entry(dataNumberOfValidKeys,  "ro", None, 'int'),
                     dataTableGeneratedKeysEntry
                     ]
 
@@ -109,13 +109,13 @@ class Tables:
         # We add --- in the beggining because the position 0 should not be read.
         self.data[2].append(["---", 
                             self.data[1],
-                            Entry(keyValue,  "ro", keyRequestor),
-                            Entry(keyRequestor,  "ro", keyRequestor),
-                            Entry(date,  "ro", keyRequestor),
-                            Entry(time,  "ro", keyRequestor),
-                            Entry(keyVisibility,  "rw", keyRequestor),
+                            Entry(keyValue,  "ro", keyRequestor, 'str'),
+                            Entry(keyRequestor,  "ro", keyRequestor, 'str'),
+                            Entry(date,  "ro", keyRequestor, 'int'),
+                            Entry(time,  "ro", keyRequestor, 'int'),
+                            Entry(keyVisibility,  "rw", keyRequestor, 'int'),
                              ])
-        self.data[1] = Entry(len(self.data[2]) - 1,  "ro", None)
+        self.data[1] = Entry(len(self.data[2]) - 1,  "ro", None, 'int')
         ooid = "3.2.6." + str(current_line) + ".0"
         print_table(self.data[2])
         error = []

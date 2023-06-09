@@ -49,7 +49,7 @@ def run_server(matrixs, tables, security):
 
         address = bytesAddressPair[1]
         request = parse_message(message[2:-1])
-        valid = security.verify_checksum(request.P, request.checksum)
+        valid = security.verify_checksum(request.client_id, request.checksum)
         if valid:
             (ooids_and_values, errors) = handle_request(matrixs, tables, request, address)
             print("To send")

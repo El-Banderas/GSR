@@ -5,4 +5,5 @@ errors_dic = {
     "Setting to read-only value": 4,
     "No permissions to see": 5,
     "No permissions to change": 6,
+    "Type of value not accepted": 6,
     }

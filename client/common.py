@@ -8,24 +8,26 @@ List_Security = []
 
 # Type request:
 # 0 = response, 1 = get, 2 = set
-def make_string_to_send(P, type_request, list_pairs, checksum):
+def make_string_to_send(client_id, P, type_request, list_pairs, checksum):
     for pair in list_pairs:
         if len(pair) < 2:
             print(pair)
             raise Exception(f"Arguments of -l must be pairs: {pair}" )
     string_list_security = ''.join(str(x) for x in List_Security)
     string_list_pairs = '[' + ','.join(str(x) for x in list_pairs) + ']'
-    res = ";".join([P, S, Ns, string_list_security, type_request, str(len(list_pairs)), string_list_pairs, checksum.decode()])
+    res = ";".join([client_id,  S, Ns, string_list_security, str(P),type_request, str(len(list_pairs)), string_list_pairs, checksum.decode()])
     print("Sending")
     print(res)
     return res
 
 class Response:
-    def __init__(self, P, S, Ns, list_Sec, Cli_id, Request_type, N, list_args, num_errors, errors):
+    # Request type is always "response", so we don't store it.
+    def __init__(self, client_id, P, S, Ns, list_Sec, Request_type, N, list_args, num_errors, errors):
         self.S = S
         self.Ns = Ns
         self.list_Sec = list_Sec
         self.P = P        
+        self.client_id = client_id        
         self.N = N
         self.list_args = []
         list_args_separated = list_args.split(",") 
@@ -44,13 +46,13 @@ class Response:
             for x in range(0, len(list_errors_separated ), 2):
                 ooid = re.search('((\d+\.)*\d+)' ,list_errors_separated[x])
                 # Capture string inside ''
-                error_value = re.search("\'([^\']+)\'" ,list_errors_separated[x+1])
+                error_value = re.search("\'([^\']+)\'.*" ,list_errors_separated[x+1])
                 pair_ooid_error = (ooid.group(1), error_value.group(1))
                 self.list_errors.append(pair_ooid_error)
 
 def parse_message(message):
-    (P, S, Ns, list_Sec, Cli_id, Request_type, N, list_args, num_errors, errors) = message.split(";")
-    request = Response( P, S, Ns, list_Sec, Cli_id, Request_type, N, list_args, num_errors, errors)
+    (server_id, S, Ns, list_Sec, P, Request_type, N, list_args, num_errors, errors) = message.split(";")
+    request = Response( server_id, P, S, Ns, list_Sec, Request_type, N, list_args, num_errors, errors)
     return request
 
 

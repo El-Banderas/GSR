@@ -7,10 +7,11 @@ class Entry:
     # value = Value to store
     # max_access = {"rw" , "ro"} , read-write or read-only
     # creator = {None, id of client that created the value} , who can read/write the information 
-    def __init__(self, value, max_access : max_access_available, creator):
+    def __init__(self, value, max_access : max_access_available, creator, type):
         self.value = value
         self.max_access = max_access 
         self.creator = creator
+        self.type = type
 
     # Check if the given agent can see the entrance
     def check_to_read(self, agent):
@@ -29,11 +30,21 @@ class Entry:
             return (False, "Setting to read-only value")
         if self.creator is not None:
             if self.creator == agent:
-                self.value = new_value
-                return (True, None)
+                if type(new_value).__name__ == self.type:
+                    self.value = new_value
+                    return (True, None)
+                else:
+                    return (False, "Type of value not accepted")
+
             else:
                 return (False, "No permissions to change")
                 
-        self.value = new_value
-        return (True, None)
+        print("Compara")
+        print(type(new_value).__name__)
+        print(self.type)
+        if type(new_value).__name__ == self.type:
+            self.value = new_value
+            return (True, None)
+        else:
+            return (False, "Type of value not accepted")
 

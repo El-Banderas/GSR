@@ -3,10 +3,11 @@ import re
 type_response = "0"
 
 class Request:
-    def __init__(self, P, S, Ns, list_Sec,  Y, N, list_args, checksum):
+    def __init__(self, client_id, P, S, Ns, list_Sec,  Y, N, list_args, checksum):
         self.S = S
         self.Ns = Ns
         self.list_Sec = list_Sec
+        self.client_id = client_id         
         self.P = P        
         self.Y = Y
         self.N = N
@@ -17,14 +18,14 @@ class Request:
             # Get address
             ooid = re.search('((\d+\.)*\d+)' ,list_args_separated[x])
             # Get number to get
-            match = re.search("\'(\d+)\'", list_args_separated[x+1])
+            match = re.search("\'(\w+)\'", list_args_separated[x+1])
             pair_add_num = (ooid.group(1), match.group(1))
             self.list_args.append(pair_add_num)
 
 
 def parse_message(message):
-    (P, S, Ns, list_Sec, Y, N, list_args, checksum) = message.split(";")
-    request = Request(P, S, Ns, list_Sec, Y, N, list_args, checksum)
+    (client_id, S, Ns, list_Sec, P, Y, N, list_args, checksum) = message.split(";")
+    request = Request(client_id, P, S, Ns, list_Sec, Y, N, list_args, checksum)
     return request
 
 def create_response(P,W,R):

@@ -1,73 +1,73 @@
-# GSR
+# GSR - 25 junho
 
 ## Tests
 Start executing the `generate_security_info.py` to generate the keys to clients and servers.
 Then, execute the server, and the following commands serve to execute the client.
 
-### Gets
+Example request `python client_get.py -l  '2.4.0','23' -r SET -id Cli0`
 
-- Simple add key (could be used to test max key number) \
-`python client_get.py  -l 3.2.6.0,1 -r SET -id Cli0`
+### Testes para fazer
 
-- Test add key and change value of visibility to 5 \
-`python client_get.py  -l 3.2.6.0,1 3.2.6.1.0,5 -r SET -id Cli0`
+- Test change value of visibility to 5 \
 
+- Test get value of key with new stuff of visibility\
 
-- Test get value of key  \
-`python client_get.py -l 3.2.6.0,1 -r SET -id Cli0 ; python client_get.py -l 3.2.1.1.0,2 -r GET -id Cli0`
-`python client_get.py -l 3.2.6.0,1 -r SET -id Cli0; python client_get.py -l 3.2.6.0,1 -r SET -id Cli0;  python client_get.py -l 2.2.0,2 3.2.2.1.0,2 3.2.2.2.0,2 -r GET -id Cli0`
-
-- Test if set variable works (1º error, second valid) \
-`python client_get.py -l 1.1.0,1 2.3.0,23 -r SET  -id Cli0`
-
-- Test invalid ooid (1º read-only value, 2º 2.4.0 ooid doesn't exist) \
-`python client_get.py -l 1.1.0,1 2.4.0,23 -r set  -id Cli0`
-
-- Test set key, first two valid, others wrong \
-`python client_get.py  -l 3.2.6.0,1 3.2.6.0,1 3.2.2.1.0,5 -r SET -id Cli0`
-
-- User B tries to see user A key \
-`python client_get.py  -l 3.2.6.0,1 -r SET -id Cli0 ; python client_get.py  -l 3.2.1.2.0,1 -r GET -id Cli1`
-
-`python client_get.py  -l 3.2.6.0,1 -r SET -id Cli0 ; python client_get.py  -l 3.2.6.1.0,4 -r SET -id Cli1`
 ### Dúvidas (abrir enunciado ao perguntar)
 
-- Proibir: "não é permitido que durante V segundos o gestor identifique outro pedido com o mesmo I-ID, sendo aconselhável que o gestor não utilize valores para os I-ID repetidos num intervalo temporal muito maior que V segundos" (última parte com dúvidas...)
 
-> Resposta:
+# Rápido
+Falta corrigir este pedido:
+`python client_get.py -l  '2.2.0','3' -r SET -id Cli0`
+no table entry tem de ver se é int, e tudo mais, fácil, acho eu...
 
-- Adicionar número do pedido, pode ser número random ou a porta?
+
+- Sets de dados tem de ser num dado intervalo? E garantir que são de um certo tipo? Estou a guardar tudo como string para generalizar. Se sim, escolho eu os critérios, e haverá mais uma mensagem de erro?
+
+> Deve verificar o tipo, se é int, por exemplo. Podes definir intervalos de valores, mínimo e máximo. Tipo, máximo number of keys
 
 
 - É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 0, com "endereço completo", exceto chaves. 
 
+> Na tabela não tem de acabar em 0. Mas config e system acaba em 0 (como tenho).
 
 - Nós podemos estar a limpar chaves (quando passa muito tempo), alterando o identificador delas (que é a linha atual), e assim o cliente perde a referência para a sua chave. É ignorar esse caso? Ou mudar o identificador da linha (para, por exemplo, o pedido?)
 
-- Sets de dados tem de ser num dado intervalo? E garantir que são de um certo tipo? Estou a guardar tudo como string para generalizar. Se sim, escolho eu os critérios, e haverá mais uma mensagem de erro?
+> OOID tem de ser sempre válido, mesmo que se apague chaves
 
 - É suposto os próximos ooids, nos pedidos, ser por linhas ou por colunas. No slide tem a procurar por colunas, quando é mais que um elemento.
 
+> Por colunas
+
 - Mensagens de erro podem ser enviadas como string, ou tem de ir o id do erro? Eu tenho um dicionário comum aos dois com erros e ids.
-- Estrutura do relatório?
+
+> Enviar só o número, o cliente volta a converter para string.
+
+- Estrutura do relatório.
+
+> Está no enunciado
+
 - Ver o que a visibilidade das chaves implica.
-- Ver discord, o meu servidor
+
+> 0 - Ninguém pode ver
+1 - Quem a criou pode ver
+2 - Toda a gente pode ver , pode ser só para o valor da chave, ou para a linha toda.
+('3.2.6.0', '1'), cria chave com visibilidade 1.
+Se criar com 0, ele pode ver uma primeira vez, e depois não pode ver, manda a mesma mensagem de erro que fosse um outro utilizador a ver.
+
+
 - As chaves podem ser valores de bytes (0-255 carateres?)
+
+> Sim, depois no cliente converter bytes para string e dar para ver.
 
 - Fase 2, ver se está correto:
 
-Neste momento, envio do cliente para o servidor: ID Cliente  ; pedido ; Checksum encriptado com chave do cliente
-O checksum do cliente é a string "CHECKSUM" encriptada pela chave.
-E estou a pensar o seguinte: id do cliente não é encriptado, pedido é encriptado pela key do servidor, checksum é pela chave do cliente.
-Assim, cliente tem duas chaves (própria e do servidor), e servidor tem chaves de todos os clientes e a própria.
-Servidor valida pelo checksum se o pedido é mesmo do cliente, e desencripta o pedido com a própria chave.
+Neste momento, envio do cliente para o servidor: 
+ID Cliente ; pedido encriptado com chave do servidor ; Checksum encriptado com chave do cliente
 
-Ao responder ao cliente, vai assim?: ID Servidor ; pedido encriptado com chave do cliente; Checksum encriptado com chave do servidor?
+> Checksum é calculado a partir do conteúdo da mensagem.
 
 
-O checksum, parte final da mensagem, pode ser copiado, o que faz com que seja menos seguro.
-
-- Perguntar se os testes fazem sentido.
+Ao responder ao cliente, vai assim: ID Servidor ; pedido encriptado com chave do cliente; Checksum encriptado com chave do servidor
 
 ### Coisas que faltam
 

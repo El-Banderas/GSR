@@ -1,9 +1,12 @@
 import socket
 import argparse
 from common import make_string_to_send, parse_message
+import random
 import sys
 sys.path.append('./../security')
 import security_functions
+
+socket_max_timeuot = 5
 
 def pair(arg):
     return arg.split(',')
@@ -36,22 +39,26 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
         Exception("Invalid arg")
 
     # Identifier of client/reques
-    P = -1 
-
+    P = random.randint(10, 5000)
     # Create a UDP socket at client side
 
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    UDPClientSocket.settimeout(socket_max_timeuot)
 
-    request_string = make_string_to_send(client_identifier, str(type_request), arg_list, checksum)
+
+
+    request_string = make_string_to_send(client_identifier, P, str(type_request), arg_list, checksum)
 
 
     # Send to server using created UDP socket
 
     UDPClientSocket.sendto(bytes(request_string, 'utf-8'), serverAddressPort)
 
-    
-
-    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    try:
+        msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    except TimeoutError:
+        print("Maximum waiting time passed. Server not responding, bye...")
+        quit()
 
     
 
@@ -59,6 +66,9 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
 
     print(msg)
     request = parse_message(msg)
+    if int(request.P) != P:
+        raise Exception("Request with wrong number!")
+
     return request
 
 if __name__ == "__main__":
