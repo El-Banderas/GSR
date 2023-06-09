@@ -57,6 +57,7 @@ Then, execute the server, and the following commands serve to execute the client
 - Fase 2, ver se está correto:
 
 Neste momento, envio do cliente para o servidor: ID Cliente  ; pedido ; Checksum encriptado com chave do cliente
+O checksum do cliente é a string "CHECKSUM" encriptada pela chave.
 E estou a pensar o seguinte: id do cliente não é encriptado, pedido é encriptado pela key do servidor, checksum é pela chave do cliente.
 Assim, cliente tem duas chaves (própria e do servidor), e servidor tem chaves de todos os clientes e a própria.
 Servidor valida pelo checksum se o pedido é mesmo do cliente, e desencripta o pedido com a própria chave.
