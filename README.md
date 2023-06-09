@@ -30,21 +30,46 @@ Then, execute the server, and the following commands serve to execute the client
 `python client_get.py  -l 3.2.6.0,1 -r SET -id Cli0 ; python client_get.py  -l 3.2.1.2.0,1 -r GET -id Cli1`
 
 `python client_get.py  -l 3.2.6.0,1 -r SET -id Cli0 ; python client_get.py  -l 3.2.6.1.0,4 -r SET -id Cli1`
-### Coisas que faltam
+### Dúvidas (abrir enunciado ao perguntar)
 
 - Proibir: "não é permitido que durante V segundos o gestor identifique outro pedido com o mesmo I-ID, sendo aconselhável que o gestor não utilize valores para os I-ID repetidos num intervalo temporal muito maior que V segundos" (última parte com dúvidas...)
-- Adicionar número do pedido, pode ser número random ou a porta
 
-- É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 0, com "endereço completo", exceto chaves
-- Nós podemos estar a limpar chaves, alterando o identificador delas (que é a linha atual), e assim o cliente perde a referência para a sua chave
+> Resposta:
 
-- Sets de dados tem de ser num dado intervalo? E garantir que são de um certo tipo? Estou a guardar tudo como string para generalizar. 
+- Adicionar número do pedido, pode ser número random ou a porta?
 
-- É suposto os próximos ooids, nos pedidos, ser por linhas ou por colunas. No slide tem a procurar por colunas, quando é mais que um elemento
+
+- É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 0, com "endereço completo", exceto chaves. 
+
+
+- Nós podemos estar a limpar chaves (quando passa muito tempo), alterando o identificador delas (que é a linha atual), e assim o cliente perde a referência para a sua chave. É ignorar esse caso? Ou mudar o identificador da linha (para, por exemplo, o pedido?)
+
+- Sets de dados tem de ser num dado intervalo? E garantir que são de um certo tipo? Estou a guardar tudo como string para generalizar. Se sim, escolho eu os critérios, e haverá mais uma mensagem de erro?
+
+- É suposto os próximos ooids, nos pedidos, ser por linhas ou por colunas. No slide tem a procurar por colunas, quando é mais que um elemento.
+
+- Mensagens de erro podem ser enviadas como string, ou tem de ir o id do erro? Eu tenho um dicionário comum aos dois com erros e ids.
+- Estrutura do relatório?
+- Ver o que a visibilidade das chaves implica.
+- Ver discord, o meu servidor
+- As chaves podem ser valores de bytes (0-255 carateres?)
+
+- Fase 2, ver se está correto:
+
+Neste momento, envio do cliente para o servidor: ID Cliente  ; pedido ; Checksum encriptado com chave do cliente
+E estou a pensar o seguinte: id do cliente não é encriptado, pedido é encriptado pela key do servidor, checksum é pela chave do cliente.
+Assim, cliente tem duas chaves (própria e do servidor), e servidor tem chaves de todos os clientes e a própria.
+Servidor valida pelo checksum se o pedido é mesmo do cliente, e desencripta o pedido com a própria chave.
+
+Ao responder ao cliente, vai assim?: ID Servidor ; pedido encriptado com chave do cliente; Checksum encriptado com chave do servidor?
+
+
+O checksum, parte final da mensagem, pode ser copiado, o que faz com que seja menos seguro.
+
+- Perguntar se os testes fazem sentido.
+
+### Coisas que faltam
 
 - Mudar para bytes, as keys ;)
-- Mensagens de erro podem ser como as que tenho?
-- Estrutura do relatório?
-- Ver discord, o meu servidor
-
 - Falta testar ir buscar vários valores à tabela dos dados
+- Se calhar mudar a forma como as passes dos clientes estão feitas, para ser mais fácil alterar.
