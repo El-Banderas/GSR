@@ -1,7 +1,8 @@
 
 from datetime import date, datetime, timedelta
-from errors import errors_dic
 from table_entry import Entry
+import sys
+sys.path.append('./../')
 
 def print_table(matrix):
     print("TABLE: ")
@@ -99,21 +100,25 @@ class Tables:
             # If maximum achieved, check if we can clean old keys
             n_deleted_keys = self.clean_old_keys()
             if n_deleted_keys == 0:
-                return ([], "Maximum number of keys attributed")
+                return ([], '2')
         current_line = self.data[1].value+1
 
         now = datetime.today()
         result = now + timedelta(seconds=self.keys_time_to_live)
         date = int(result.strftime("%y%m%d"))
         time = int(result.strftime("%H%M%S"))
-        # We add --- in the beggining because the position 0 should not be read.
+        # If the keyVisibility is 0, we assume the key must be secure.
+        if keyVisibility > 0:
+            max_access = "rw"
+        else:
+            max_access = "ro"
         self.data[2].append(["---", 
                             self.data[1],
-                            Entry(keyValue,  "ro", keyRequestor, 'str'),
-                            Entry(keyRequestor,  "ro", keyRequestor, 'str'),
-                            Entry(date,  "ro", keyRequestor, 'int'),
-                            Entry(time,  "ro", keyRequestor, 'int'),
-                            Entry(keyVisibility,  "rw", keyRequestor, 'int'),
+                            Entry(keyValue,  max_access, keyRequestor, 'str', keyVisibility),
+                            Entry(keyRequestor,  max_access, keyRequestor, 'str', keyVisibility),
+                            Entry(date,  max_access, keyRequestor, 'int', keyVisibility),
+                            Entry(time,  max_access, keyRequestor, 'int', keyVisibility),
+                            Entry(keyVisibility, max_access, keyRequestor, 'int', keyVisibility),
                              ])
         self.data[1] = Entry(len(self.data[2]) - 1,  "ro", None, 'int')
         ooid = "3.2.6." + str(current_line) + ".0"
@@ -137,16 +142,16 @@ class Tables:
             if len(ooid) == 2:
                 column = ooid[0]+i
                 if column >= len(table):
-                    errors.append("invalid ooid")
+                    errors.append(1)
                     return (ids_values, errors)
                 instance = ooid[1]
                 current_ooid =  ".".join([number_table, str(column), str(instance)])
                 if instance != 0:
-                    errors.append((current_ooid,"ooid not instance"))
+                    errors.append((current_ooid,1))
                 else:
                     ids_values.append((current_ooid,str(table[column].value) ))
             else:
-                errors.append("invalid ooid")
+                errors.append('1')
         return (ids_values, errors)
     
     # Normal ooid: 
@@ -182,14 +187,14 @@ class Tables:
             convert_ooid_to_string = list(map(lambda num : str(num), ooid))
             current_ooid = ".".join(["3"]+convert_ooid_to_string)
             if line >= numer_lines or column > 6 or line < 1 or column < 0:
-                return ([], (current_ooid, "invalid ooid"))
+                return ([], (current_ooid, '1'))
             else:
                 entry = self.data[2][line][column]
                 if entry.check_to_read(requestor):
                     pair = (".".join(["3.2", str(line), str(column), "0"]), str(entry.value))
                     return (pair, None)
                 else:
-                    return ([], (current_ooid,"No permissions to see"))
+                    return ([], (current_ooid,'4'))
 
     def get_data(self, ooid, value, requestor):
         ooids_values = []
@@ -204,9 +209,6 @@ class Tables:
             if ooid == None:
                 break 
             
-        print("Devolve")
-        print(ooids_values)
-        print(errors)
         return (ooids_values, errors)
 
     def get_values(self, list_ooids, requestor):
@@ -238,7 +240,7 @@ class Tables:
                 errors_final.extend(errors)
             else:
                 print("Error")
-                errors.append(errors_dic["invalid ooid"], ooid_string)
+                errors.append("1", ooid_string)
         print("Resposta:")
         print(ids_values_final)
         print(errors_final)
@@ -256,13 +258,13 @@ class Tables:
         print("Config|System table")
         print_simple_table(table)
         if len(ooid) != 3 or ooid[2] != 0:
-            return ([] , "invalid ooid") 
+            return ([] , '1') 
         column = ooid[1]
         instance = ooid[2]
         current_ooid =  ".".join([str(ooid[0]), str(column), str(instance)])
         if len(ooid) == 3:
             if column >= len(table):
-                return ([],  "invalid ooid")
+                return ([],  '1')
             else:
                 value_table = table[column]
                 # Anyone can change this value
@@ -274,7 +276,7 @@ class Tables:
                 else:
                     return ([],  maybeError)
         else:
-            return ([], "invalid ooid")
+            return ([], '1')
     
     # OOID -> Not create key, process more complex
     # 0 -> 3, keys
@@ -285,15 +287,15 @@ class Tables:
     def set_keys_table(self, ooid, value, table, requestor):
         print("Keys Table")
         if ooid == [3,1,0]:
-            return ([], "Setting to read-only value") 
+            return ([], '3') 
         if len(ooid) != 5 or ooid[1] != 2 or ooid[4] != 0:
-            return ([], "invalid ooid") 
+            return ([], '1') 
         column = ooid[2]
         line = ooid[3]
         ooid_strings = list(map(lambda num : str(num), ooid))
         current_ooid =  ".".join([*ooid_strings])
         if line >= len(table):
-            return ([], "invalid ooid")
+            return ([], '1')
         else:
             value_table = table[line][column]
             #table[line][column] = int(value)
@@ -324,7 +326,7 @@ class Tables:
             return self.set_keys_table(ooid, value, self.data[2], requestor )
         else:
 
-            return ([],"invalid ooid" )
+            return ([],'1' )
 
 
     def __init__(self, params):

@@ -15,17 +15,6 @@ Example request `python client_get.py -l  '2.4.0','23' -r SET -id Cli0`
 ### Dúvidas (abrir enunciado ao perguntar)
 
 
-# Rápido
-Falta corrigir este pedido:
-`python client_get.py -l  '2.2.0','3' -r SET -id Cli0`
-no table entry tem de ver se é int, e tudo mais, fácil, acho eu...
-
-
-- Sets de dados tem de ser num dado intervalo? E garantir que são de um certo tipo? Estou a guardar tudo como string para generalizar. Se sim, escolho eu os critérios, e haverá mais uma mensagem de erro?
-
-> Deve verificar o tipo, se é int, por exemplo. Podes definir intervalos de valores, mínimo e máximo. Tipo, máximo number of keys
-
-
 - É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 0, com "endereço completo", exceto chaves. 
 
 > Na tabela não tem de acabar em 0. Mas config e system acaba em 0 (como tenho).
@@ -38,22 +27,9 @@ no table entry tem de ver se é int, e tudo mais, fácil, acho eu...
 
 > Por colunas
 
-- Mensagens de erro podem ser enviadas como string, ou tem de ir o id do erro? Eu tenho um dicionário comum aos dois com erros e ids.
-
-> Enviar só o número, o cliente volta a converter para string.
-
 - Estrutura do relatório.
 
 > Está no enunciado
-
-- Ver o que a visibilidade das chaves implica.
-
-> 0 - Ninguém pode ver
-1 - Quem a criou pode ver
-2 - Toda a gente pode ver , pode ser só para o valor da chave, ou para a linha toda.
-('3.2.6.0', '1'), cria chave com visibilidade 1.
-Se criar com 0, ele pode ver uma primeira vez, e depois não pode ver, manda a mesma mensagem de erro que fosse um outro utilizador a ver.
-
 
 - As chaves podem ser valores de bytes (0-255 carateres?)
 
@@ -69,8 +45,13 @@ ID Cliente ; pedido encriptado com chave do servidor ; Checksum encriptado com c
 
 Ao responder ao cliente, vai assim: ID Servidor ; pedido encriptado com chave do cliente; Checksum encriptado com chave do servidor
 
+- Sets de dados tem de ser num dado intervalo? 
+
+> Deve verificar o tipo, se é int, por exemplo. Podes definir intervalos de valores, mínimo e máximo. Tipo, máximo number of keys
+
 ### Coisas que faltam
 
 - Mudar para bytes, as keys ;)
 - Falta testar ir buscar vários valores à tabela dos dados
 - Se calhar mudar a forma como as passes dos clientes estão feitas, para ser mais fácil alterar.
+- Mudar nomes de ficheiros? Tipo common no cliente

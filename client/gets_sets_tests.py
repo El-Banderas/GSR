@@ -21,7 +21,7 @@ class TestStringMethods(unittest.TestCase):
         print("Compares")
         print(res.list_args)
         print(res.list_errors)
-        self.assertEqual(res.list_args, [('3.2.6.1.0', '0')])
+        self.assertEqual(res.list_args, [('3.2.6.1.0', '1')])
         self.assertEqual(res.list_errors, [])
 
     ## --------------  Test GETS -------------------
@@ -91,6 +91,14 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(res.list_args, [])
         self.assertEqual(res.list_errors, [('2.4.0', 'invalid ooid')])
 
+    def test_types_of_values_SET(self):
+        set_wrong_type = main_funcion_client("Cli0", "SET", [('2.2.0','a')] )
+        self.assertEqual(set_wrong_type.list_args, [])
+        self.assertEqual(set_wrong_type.list_errors, [('2.2.0', 'Type of value not accepted')])
+        
+        set_correct = main_funcion_client("Cli0", "SET", [('2.2.0','1')] )
+        self.assertEqual(set_correct.list_args, [('2.2.0','1')])
+        self.assertEqual(set_correct.list_errors, [])
 
 debug = False
 if debug:

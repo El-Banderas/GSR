@@ -59,7 +59,7 @@ def run_server(matrixs, tables, security):
             # Sending a reply to client
             UDPServerSocket.sendto(bytes_to_send, address)
         else:
-            bytes_to_send = str.encode(create_error_message(request.P, "user not authenticated"))
+            bytes_to_send = str.encode(create_error_message(request.client_id, "user not authenticated"))
             UDPServerSocket.sendto(bytes_to_send, address)
 
 def handle_request(matrixs, tables, request, address):
@@ -69,12 +69,12 @@ def handle_request(matrixs, tables, request, address):
         errors = []
         for (ooid, num) in request.list_args:
             # To generate a key, you must have a number one as value
-            if ooid == '3.2.6.0' and int(num) == 1:
+            if ooid == '3.2.6.0':
                 print("Get key :)") 
                 key = matrixs.get_key()
                 # Convert key to string
                 key = list(map(lambda byte : str(byte), key))
-                (pair_ooid_value, error) = tables.add_key("|".join(key), request.P, 0)
+                (pair_ooid_value, error) = tables.add_key("|".join(key), request.client_id, int(num))
                 if len(pair_ooid_value) > 0:
                     pairs_ooids_values.extend(pair_ooid_value)
                 if len(error) > 0:
@@ -82,7 +82,7 @@ def handle_request(matrixs, tables, request, address):
                     errors.append(error)
             else:
                 print("SET NOT ADD KEY")
-                (pair_ooid_value, error) = tables.set_values(ooid, num, request.P)
+                (pair_ooid_value, error) = tables.set_values(ooid, num, request.client_id)
                 if len(pair_ooid_value) > 0:
                     pairs_ooids_values.append(pair_ooid_value)
                 if len(error) > 0:
@@ -91,12 +91,12 @@ def handle_request(matrixs, tables, request, address):
         return (pairs_ooids_values, errors)
     if request.Y == "1":
         print("Get")
-        return tables.get_values(request.list_args, request.P)
+        return tables.get_values(request.list_args, request.client_id)
 
 
 
 if __name__ == "__main__":
-    print("Olá da main (server)")
+    print("Server starting...")
     read_file()
     print(params)
 
