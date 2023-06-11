@@ -120,7 +120,7 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(set_correct.list_args, [('2.2.0','1')])
         self.assertEqual(set_correct.list_errors, [])
 
-debug = True
+debug = False
 if debug:
     res=main_funcion_client("Cli1", "GET", [('2.2.0','1')] )
     print("Debug")

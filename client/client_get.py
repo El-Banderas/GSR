@@ -72,15 +72,16 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
     msg_string = msgFromServer[0].decode('utf-8')
     server_id, content_encripted, checksum = msg_string.split(";")
     content_decripted = security_functions.generate_decrypted_string(content_encripted, cipher_client_server[0])
-    checksum_decripted = security_functions.generate_decrypted_string(content_encripted, cipher_client_server[1])
+    checksum_decripted = security_functions.generate_decrypted_string(checksum, cipher_client_server[1])
     if checksum_decripted != content_decripted:
         print("Diferentes")
         print(checksum_decripted )
         print(content_decripted )
         raise Exception("Message not from server")
 
-    print(content_decripted)
-    request = parse_message(msg)
+    print("Message decripted")
+    print(content_decripted.decode('utf-8'))
+    request = parse_message(content_decripted.decode('utf-8'))
     if int(request.P) != P:
         raise Exception("Request with wrong number!")
 
