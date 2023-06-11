@@ -45,7 +45,7 @@ def generate_info():
                 # If you want to change the password of the file, must change the cipher in next line
                 # Choose other word as argument of function
                 cipher = convert_password_to_key(user)
-                to_write = f"{user}:{value}"
+                to_write = f"{user}:{value};server:{users_keys['server']}"
                 print("Writing to file: " + f'../client/{user}.key')
                 print(to_write)
                 encrypted_info = cipher.encrypt(to_write.encode())

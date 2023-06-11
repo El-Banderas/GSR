@@ -31,12 +31,22 @@ class Security:
                 self.keys[line[0]] = line[1]
 
     '''
-    This function receives de client id, and the checksum, and verifies if the checksum is associated with the client key.
+    This function receives de client id, the message decoded, and checksum.
+    Then, decripts the checksum with the client key, and compares to the message decripted.
     '''
-    def verify_checksum(self, client, checksum):
+    def verify_checksum(self, client, message, checksum):
         if client in self.keys:
             fernet_bytes = bytes(self.keys[client],'utf-8')[2:-1]
             fernet_to_decript = Fernet(fernet_bytes)
-            return security_functions.verify_checksum_with_fernet(checksum, fernet_to_decript )
+            decripted = security_functions.decript_message(checksum, fernet_to_decript)
+            return decripted == message
         return False
+    '''
+    This function receives de client id, and the checksum, and verifies if the checksum is associated with the client key.
+    '''
+    def get_fernet_client(self, client):
+        if client in self.keys:
+            return Fernet(bytes(self.keys[client],'utf-8')[2:-1])
+        return None
+
 

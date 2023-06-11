@@ -17,26 +17,18 @@ class Entry:
 
     # Checks visibility of keys.
     def agent_can_get_or_set(self, agent):
-        print("Visibility")
-        print(self.visibility)
-        print(self.visibility is None)
         # No problem with visibility
         if self.visibility is None:
-            print("1")
             return True
         # Anyone can see, 2 or higher
         if self.visibility > 1:
-            print("2")
             return True
         # Visibility in [0,1]
         if self.creator == agent and self.visibility >= 0:
-            print("Maybe?")
-            print(self.visibility)
             # This way, a key with visibility of 0 can only be seen one time.
             if self.visibility == 0:
                 self.visibility = -1
             return True
-        print(":(")
         return False
             
 

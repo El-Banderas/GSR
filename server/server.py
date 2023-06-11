@@ -3,7 +3,7 @@ import re
 type_response = "0"
 
 class Request:
-    def __init__(self, client_id, P, S, Ns, list_Sec,  Y, N, list_args, checksum):
+    def __init__(self, client_id, P, S, Ns, list_Sec,  Y, N, list_args):
         self.S = S
         self.Ns = Ns
         self.list_Sec = list_Sec
@@ -12,7 +12,6 @@ class Request:
         self.Y = Y
         self.N = N
         self.list_args = []
-        self.checksum = checksum
         list_args_separated = list_args.split(",") 
         for x in range(0, len(list_args_separated), 2):
             # Get address
@@ -24,8 +23,8 @@ class Request:
 
 
 def parse_message(message):
-    (client_id, S, Ns, list_Sec, P, Y, N, list_args, checksum) = message.split(";")
-    request = Request(client_id, P, S, Ns, list_Sec, Y, N, list_args, checksum)
+    (client_id, S, Ns, list_Sec, P, Y, N, list_args) = message.split(";")
+    request = Request(client_id, P, S, Ns, list_Sec, Y, N, list_args)
     return request
 
 def create_response(P,W,R):

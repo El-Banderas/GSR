@@ -9,23 +9,11 @@ Example request `python client_get.py -l  '2.4.0','23' -r SET -id Cli0`
 ### Testes para fazer
 
 - Test change value of visibility to 5 \
+- Testar cliente que não está registado no servidor
+FALTA FAZER A SEGURANÇA PARA TRÁS, SERVIDOR CLIENTE
 
-- Test get value of key with new stuff of visibility\
+### Dúvidas 
 
-### Dúvidas (abrir enunciado ao perguntar)
-
-
-- É possível fazer um pedido que não termine em .0? Por exemplo, pedir get's de 3.2.1 , ou 3.2?    Estou a assumir que só se pedem valores terminados com 0, com "endereço completo", exceto chaves. 
-
-> Na tabela não tem de acabar em 0. Mas config e system acaba em 0 (como tenho).
-
-- Nós podemos estar a limpar chaves (quando passa muito tempo), alterando o identificador delas (que é a linha atual), e assim o cliente perde a referência para a sua chave. É ignorar esse caso? Ou mudar o identificador da linha (para, por exemplo, o pedido?)
-
-> OOID tem de ser sempre válido, mesmo que se apague chaves
-
-- É suposto os próximos ooids, nos pedidos, ser por linhas ou por colunas. No slide tem a procurar por colunas, quando é mais que um elemento.
-
-> Por colunas
 
 - Estrutura do relatório.
 

@@ -6,7 +6,8 @@ sys.path.append('./../')
 
 def print_table(matrix):
     print("TABLE: ")
-    for row in matrix:
+    for k, row in matrix.items():
+        print(k,end="->")
         for column in row:
             if isinstance(column, str):
                 print(column, end=";")
@@ -24,6 +25,19 @@ def print_simple_table(matrix):
             print(column.value, end=";")
     print()
             
+    '''
+In case we receive an ooid for tables like 3.2 or 3.2.1, this funcion converts to:
+3.2.1.1.0
+'''
+def convert_incomplet_ooid(ooid):
+    if (len(ooid)) == 1:
+        ooid.extend([1,1,0])
+    if (len(ooid)) == 2:
+        ooid.extend([1,0])
+    if (len(ooid)) == 3:
+        ooid.extend([0])
+    return ooid
+
 
 
 
@@ -62,7 +76,8 @@ class Tables:
     #  dataNumberOfValidKeys | dataTableGeneratedKeys
     def init_data(self):
         dataNumberOfValidKeys = 0
-        dataTableGeneratedKeysEntry = ["---"]
+        dataTableGeneratedKeysEntry = {}
+        self.data_current_index = 1
         self.data = ["data", 
                     Entry(dataNumberOfValidKeys,  "ro", None, 'int'),
                     dataTableGeneratedKeysEntry
@@ -76,8 +91,12 @@ class Tables:
         date_now = int(now.strftime("%y%m%d"))
         time_now = int(now.strftime("%H%M%S"))
         number_deleted_keys = 0
-        current_index = 1
-        while current_index < len(self.data[2]):
+        # Max line - number of available keys == position first key
+        current_index = self.data_current_index - self.data[1].value
+        while current_index < self.data_current_index:
+            print("iteracion")
+            print(current_index)
+            print_table(self.data[2])
             key_info = self.data[2][current_index]
             date_key = key_info[4].value
             time_key = key_info[5].value
@@ -85,10 +104,10 @@ class Tables:
                 print("Delete key")
                 del self.data[2][current_index]
                 number_deleted_keys+=1
-            else:
-                current_index+=1
+                # Number of valid keys lost one key
+                self.data[1].value = self.data[1].value-1
+            current_index+=1
         # Update number of keys in table
-        self.data[1].value = len(self.data[2]) - 1
         return number_deleted_keys
         
 
@@ -101,7 +120,6 @@ class Tables:
             n_deleted_keys = self.clean_old_keys()
             if n_deleted_keys == 0:
                 return ([], '2')
-        current_line = self.data[1].value+1
 
         now = datetime.today()
         result = now + timedelta(seconds=self.keys_time_to_live)
@@ -112,15 +130,18 @@ class Tables:
             max_access = "rw"
         else:
             max_access = "ro"
-        self.data[2].append(["---", 
+        current_line = self.data_current_index
+        self.data_current_index = current_line+1
+        self.data[2][current_line] = ["---", 
                             self.data[1],
                             Entry(keyValue,  max_access, keyRequestor, 'str', keyVisibility),
                             Entry(keyRequestor,  max_access, keyRequestor, 'str', keyVisibility),
                             Entry(date,  max_access, keyRequestor, 'int', keyVisibility),
                             Entry(time,  max_access, keyRequestor, 'int', keyVisibility),
                             Entry(keyVisibility, max_access, keyRequestor, 'int', keyVisibility),
-                             ])
-        self.data[1] = Entry(len(self.data[2]) - 1,  "ro", None, 'int')
+                             ]
+        old_data_1 = self.data[1].value
+        self.data[1] = Entry(old_data_1+1,  "ro", None, 'int')
         ooid = "3.2.6." + str(current_line) + ".0"
         print_table(self.data[2])
         error = []
@@ -156,34 +177,37 @@ class Tables:
     
     # Normal ooid: 
     #(0) First number: [1,2]
-    #(1) Second number: [1, max number of keys]
-    #(2) Third number: [1, 6]
+    #(1) Second number: [1, 6] , max number of columns
+    #(2) Third number: [1, number_keys]
     #(3) Fourth number: 0
     def get_next_ooid_data_table(self, ooid):
         if ooid == [ 1,0]:
             return [2,1, 0]
+        if len(ooid) < 4:
+            ooid = convert_incomplet_ooid(ooid)
         # Strange ooids, that are out of the table
-        if ooid[0] > 2 or ooid[1] > 6:
-            return None
-        else:
-            if ooid[2] < 6:
-                return [ooid[0], ooid[1], ooid[2]+1 ,0 ]
-            if ooid[1] < len(self.data[2]):
-                return [ooid[0], ooid[1]+1, 1, 0]
-        return None
+        if ooid[2]+1 < self.data_current_index:
+            return [ooid[0], ooid[1], ooid[2]+1 ,0 ]
+        # If we haven't reached the end of the table (last line).
+        if ooid[1] < 6:
+            return [ooid[0], ooid[1]+1, 1, 0]
+        # Return ooid and error
+        return (f"3.2.6.{self.data_current_index}.0", '1' )
 
-    # Return (ooid, value, error)
+        # Return (ooid, value, error)
     def get_data_value_by_ooid(self, ooid, requestor):
         print("Get data")
         print(ooid)
         if ooid == [ 1,0]:
             return ([("3.1.0",str(self.data[1].value))], None)
         else:
+            if len(ooid) < 4:
+                ooid = convert_incomplet_ooid(ooid)
             # I could use the "dataNumberOfValidKeys", but I prefer this method.
-            numer_lines = len(self.data[2])
+            numer_lines = self.data_current_index
 
-            line = ooid[2]
             column = ooid[1]
+            line = ooid[2]
             convert_ooid_to_string = list(map(lambda num : str(num), ooid))
             current_ooid = ".".join(["3"]+convert_ooid_to_string)
             if line >= numer_lines or column > 6 or line < 1 or column < 0:
@@ -191,7 +215,7 @@ class Tables:
             else:
                 entry = self.data[2][line][column]
                 if entry.check_to_read(requestor):
-                    pair = (".".join(["3.2", str(line), str(column), "0"]), str(entry.value))
+                    pair = (".".join(["3.2", str(column), str(line), "0"]), str(entry.value))
                     return (pair, None)
                 else:
                     return ([], (current_ooid,'4'))
@@ -206,7 +230,10 @@ class Tables:
             if error:
                 errors.append(error)
             ooid = self.get_next_ooid_data_table(ooid)
-            if ooid == None:
+            # If there are more requests, we should stop and return error.
+            if type(ooid) == tuple and i+1 < int(value):
+                errors.append(ooid)
+                
                 break 
             
         return (ooids_values, errors)

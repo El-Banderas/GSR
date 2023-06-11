@@ -27,8 +27,9 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
     #cipher = security_functions.get_cipher(name_file_with_key, "Cli2")
     if not cipher:
         quit()
+    # Cipher is now: [client:Key, server:Key]
+    cipher_client_server = cipher.split(";")
 
-    checksum = security_functions.generate_encrypted_checksum(cipher)
 
 
     if type_request == "GET":
@@ -47,12 +48,16 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
 
 
 
-    request_string = make_string_to_send(client_identifier, P, str(type_request), arg_list, checksum)
+    request_string = make_string_to_send(client_identifier, P, str(type_request), arg_list)
 
+    request_encripted = security_functions.generate_encrypted_string(request_string, cipher_client_server[1])
+    checksum = security_functions.generate_encrypted_string(request_string, cipher_client_server[0])
 
     # Send to server using created UDP socket
-
-    UDPClientSocket.sendto(bytes(request_string, 'utf-8'), serverAddressPort)
+    final_message = ";".join([client_identifier, request_encripted.decode(), checksum.decode()])
+    print("Final message")
+    print(final_message)
+    UDPClientSocket.sendto(bytes(final_message, 'utf-8'), serverAddressPort)
 
     try:
         msgFromServer = UDPClientSocket.recvfrom(bufferSize)
@@ -64,7 +69,17 @@ def  main_funcion_client(client_identifier, type_request, arg_list):
 
     msg = "Message from Server {}".format(msgFromServer[0])
 
-    print(msg)
+    msg_string = msgFromServer[0].decode('utf-8')
+    server_id, content_encripted, checksum = msg_string.split(";")
+    content_decripted = security_functions.generate_decrypted_string(content_encripted, cipher_client_server[0])
+    checksum_decripted = security_functions.generate_decrypted_string(content_encripted, cipher_client_server[1])
+    if checksum_decripted != content_decripted:
+        print("Diferentes")
+        print(checksum_decripted )
+        print(content_decripted )
+        raise Exception("Message not from server")
+
+    print(content_decripted)
     request = parse_message(msg)
     if int(request.P) != P:
         raise Exception("Request with wrong number!")

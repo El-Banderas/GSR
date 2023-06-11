@@ -7,8 +7,6 @@ from base64 import urlsafe_b64encode
 #password = input("Insert password, please: ")
 #fernet = convert_password_to_key(password)
 
-checksum = "CHECKSUM"
-
 #with open('../client/Cli0.key', 'rb') as file:
 #    key = file.read()
 # using the key
@@ -28,26 +26,29 @@ def get_cipher(path_to_file, password=None):
         normal_string = decrypted.decode('utf-8')
         return (normal_string)
     except InvalidToken:
-        print("Chave errada")
+        print("Wrong key")
         return None
 
-def generate_encrypted_checksum(fernet):
+# When fernet is still in file, not converted to object
+def generate_encrypted_string(string, fernet):
     fernet_clean = bytes(fernet.split(":")[1],'utf-8')
     #ai = urlsafe_b64encode(fernet_clean)
-    print("Fernet clean")
-    print(fernet_clean[2:-1])
     fernet_to_decript = Fernet(fernet_clean[2:-1])
-    return fernet_to_decript.encrypt(checksum.encode())
+    return fernet_to_decript.encrypt(string.encode())
 
-def verify_checksum_with_fernet(encripted_checksum, fernet):
-    try:
-        checksum_decoded = fernet.decrypt(encripted_checksum.encode())
-        print("Checksume decoded")
-        print(checksum_decoded.decode())
-        if checksum_decoded.decode() == checksum:
-            return True
-        else:
-            return False
-    except InvalidToken:
-        print("Invalid checksum")
-        return False
+def generate_decrypted_string(string, fernet):
+    fernet_clean = bytes(fernet.split(":")[1],'utf-8')
+    #ai = urlsafe_b64encode(fernet_clean)
+    fernet_to_decript = Fernet(fernet_clean[2:-1])
+    return fernet_to_decript.decrypt(string.encode())
+
+
+def encript_string(string, fernet_object):
+    return fernet_object.encrypt(string.encode())
+
+
+def decript_message(message, fernet):
+    return fernet.decrypt(message.encode())
+
+def decript_bytes(message, fernet):
+    return fernet.decrypt(message)
