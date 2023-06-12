@@ -11,6 +11,13 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 user_password = "pa"
 number_clients = 3
 users_keys = {}
+files_passwords = {
+     "agent" : "agent",
+     "manager0" : "manager0",
+     "manager1" : "manager1",
+     "manager2" : "manager2",
+     "badManager" : "badManager",
+}
 
 
 def convert_password_to_key(password):
@@ -30,48 +37,51 @@ def convert_password_to_key(password):
 
 def generate_info(): 
 
-    cipher = convert_password_to_key(user_password)
-
     # Generate keys
     for i in range(number_clients):
-        users_keys[f'Cli{i}'] = Fernet.generate_key()
-        users_keys["server"] = Fernet.generate_key()
+        users_keys[f'Manager{i}'] = Fernet.generate_key()
+    users_keys["agent"] = Fernet.generate_key()
 
     print(users_keys)
     
     for user, value in users_keys.items():
         if "server" not in user: 
-            with open(f'../client/{user}.key', 'wb') as filekey:
+            with open(f'../manager/{user}.key', 'wb') as filekey:
                 # If you want to change the password of the file, must change the cipher in next line
                 # Choose other word as argument of function
-                cipher = convert_password_to_key(user)
-                to_write = f"{user}:{value};server:{users_keys['server']}"
-                print("Writing to file: " + f'../client/{user}.key')
+                cipher = convert_password_to_key(files_passwords[user])
+                to_write = f"{user}:{value};agent:{users_keys['agent']}"
+                print("Writing to file: " + f'../manager/{user}.key')
                 print(to_write)
                 encrypted_info = cipher.encrypt(to_write.encode())
                 filekey.write(encrypted_info)
 
-    with open(f'../server/server.key', 'wb') as filekey:
+    with open(f'../agent/agent.key', 'wb') as filekey:
         to_write = ""
         for user, value in users_keys.items():
-            cipher = convert_password_to_key("server")
+            cipher = convert_password_to_key("agent")
             to_write = f"{user}:{value};"+to_write
-        print("Write to server file")
+        print("Write to agent file")
         print(to_write)
         encrypted_info = cipher.encrypt(to_write.encode())
             #encrypted_info = cipher.encrypt()
         filekey.write(encrypted_info )
 
+    # Client not registed that tries to enter the system 
+    user = "BadClient"
+    with open(f'../manager/{user}.key', 'wb') as filekey:
+                # If you want to change the password of the file, must change the cipher in next line
+                # Choose other word as argument of function
+                cipher = convert_password_to_key(files_passwords[user])
+                to_write = f"{user}:{value};agent:{users_keys['agent']}"
+                print("Writing to file: " + f'../client/{user}.key')
+                print(to_write)
+                encrypted_info = cipher.encrypt(to_write.encode())
+                filekey.write(encrypted_info)
 
-    '''
-    # key generation
-    key_server = Fernet.generate_key()
+
     
-    # string the key in a file
-    with open('filekey.key', 'wb') as filekey:
-    filekey.write(key)
-
-    '''
+ 
 
 if __name__ == "__main__":
     generate_info()

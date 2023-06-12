@@ -5,4 +5,5 @@ errors_dic = {
    4: "No permissions to see",
    5: "No permissions to change",
    6: "Type of value not accepted",
+   7: "User not authenticated",
     }
