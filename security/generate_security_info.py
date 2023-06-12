@@ -39,7 +39,7 @@ def generate_info():
 
     # Generate keys
     for i in range(number_clients):
-        users_keys[f'Manager{i}'] = Fernet.generate_key()
+        users_keys[f'manager{i}'] = Fernet.generate_key()
     users_keys["agent"] = Fernet.generate_key()
 
     print(users_keys)
@@ -68,7 +68,7 @@ def generate_info():
         filekey.write(encrypted_info )
 
     # Client not registed that tries to enter the system 
-    user = "BadClient"
+    user = "badManager"
     with open(f'../manager/{user}.key', 'wb') as filekey:
                 # If you want to change the password of the file, must change the cipher in next line
                 # Choose other word as argument of function

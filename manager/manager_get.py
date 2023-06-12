@@ -11,13 +11,13 @@ socket_max_timeuot = 5
 def pair(arg):
     return arg.split(',')
 
-def  main_funcion_client(client_identifier, type_request, arg_list):
+def  main_function_manager(client_identifier, type_request, arg_list):
 
     serverAddressPort   = ("127.0.0.1", 20001)
 
     bufferSize          = 1024
 
-    name_file_with_key = f'../client/{client_identifier}.key'
+    name_file_with_key = f'../manager/{client_identifier}.key'
     #name_file_with_key = f'../client/Cli2.key'
 
     # TODO: Remover segundo argumento para obrigar a inserir password. Password pode ser configurável
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     argParser.add_argument("-r", "--type_request", help="Type of request (GET or SET).", required=True, action="store",choices=['SET', 'GET'],type=str) 
     argParser.add_argument("-id", "--client-identifier", help="Identifier to set keys and haver permissions.", required=True, action="store",type=str) 
     args = argParser.parse_args()
-    main_funcion_client(args.client_identifier, args.type_request, args.list)
+    main_function_manager(args.client_identifier, args.type_request, args.list)
 
 
 #def  main_funcion_client(client_identifier, type_request, arg_list):

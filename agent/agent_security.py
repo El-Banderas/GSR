@@ -13,11 +13,11 @@ class Security:
     After, we store in keys dictionary all the keys associated with each entity (client and server). 
     '''
     def __init__(self):
-        name_file_with_key = f'../server/server.key'
+        name_file_with_key = f'../agent/agent.key'
 
         # TODO: Remover segundo argumento para obrigar a inserir password. Password pode ser configurável
         # Está em comentário duas linhas a seguir
-        ciphers = security_functions.get_cipher(name_file_with_key, "server")
+        ciphers = security_functions.get_cipher(name_file_with_key, "agent")
         #cipher = security_functions.get_cipher(name_file_with_key)
         if not ciphers:
             quit()

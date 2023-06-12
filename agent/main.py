@@ -1,11 +1,11 @@
 from asyncio import Event
 import re
 from matrixs import Matrixs
-from agent.agent import parse_message, create_response, create_error_message
+from agent import parse_message, create_response, create_error_message
 from tables import *
 import socket
 from update_keys import Update_Keys
-from agent.agent_security import Security
+from agent_security import Security
 import sys
 sys.path.append('./../security')
 import security_functions
@@ -42,8 +42,8 @@ class Main_Server:
     # Gets the message to send and encripts, appending in the end the checksum.
     def get_bytes_to_send(self, message, client_id):
             response_encr = security_functions.encript_string(message, self.security.get_fernet_client(client_id))
-            checksum = security_functions.encript_string(message, self.security.get_fernet_client("server"))
-            return ";".join(["server", response_encr.decode('utf-8'), checksum.decode('utf-8')]).encode()
+            checksum = security_functions.encript_string(message, self.security.get_fernet_client("agent"))
+            return ";".join(["agent", response_encr.decode('utf-8'), checksum.decode('utf-8')]).encode()
 
 
     def run_server(self):
@@ -60,7 +60,7 @@ class Main_Server:
 
             address = bytesAddressPair[1]
             requestor_message_checksum = message.split(";")
-            fernet_client = self.security.get_fernet_client("server")
+            fernet_client = self.security.get_fernet_client("agent")
             message_decoded = security_functions.decript_message(requestor_message_checksum[1], fernet_client)
             valid = self.security.verify_checksum(requestor_message_checksum[0], 
                                                    message_decoded,
@@ -77,7 +77,7 @@ class Main_Server:
                 message_string = message_decoded.decode('utf-8')
                 client_id = message_string.split(";")[0]
                 str_to_send = create_error_message(client_id,7)
-                bytes_to_send = ";".join(["server", str_to_send])
+                bytes_to_send = ";".join(["agent", str_to_send])
                 UDPServerSocket.sendto(bytes_to_send.encode(), address)
 
     def handle_request(self, request):
