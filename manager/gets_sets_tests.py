@@ -1,3 +1,4 @@
+import time
 from manager_get import main_function_manager
 import unittest
 
@@ -124,9 +125,16 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(not_autenticated.list_args, [])
         self.assertEqual(not_autenticated.list_errors, [('0.0', 'User not authenticated')])
 
+
 debug = False
 if debug:
-    request_incomplete  = main_function_manager("manager0", "GET", [('2.4.0','23')] )
+    for i in range(52):
+            main_function_manager("manager0", "GET", [('2.2.0','1')] )
+    much_requests = main_function_manager("manager0", "GET", [('2.2.0','1')] )
+    print("Erro de muitos pedidos")
+    print(much_requests.list_args)
+    print(much_requests.list_errors)
+    #request_incomplete  = main_function_manager("manager0", "GET", [('2.4.0','23')] )
     #print("\n\nDebug")
     #print(request_incomplete.list_args)
     #print(request_incomplete.list_errors)

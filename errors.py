@@ -6,4 +6,5 @@ errors_dic = {
    5: "No permissions to change",
    6: "Type of value not accepted",
    7: "User not authenticated",
+   8: "Too many requests",
     }

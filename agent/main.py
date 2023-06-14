@@ -6,6 +6,7 @@ from tables import *
 import socket
 from update_keys import Update_Keys
 from agent_security import Security
+from datetime import datetime
 import sys
 sys.path.append('./../security')
 import security_functions
@@ -16,7 +17,7 @@ default_file = "./input.txt"
 params = {}
 
 def read_file():
-    pattern = re.compile("(\w)=(.+)$")
+    pattern = re.compile("(\w+)=(.+)$")
     for i, line in enumerate(open(default_file)):
         result = re.search(pattern, line)
         if result.group(1) == "M":
@@ -34,10 +35,31 @@ class Main_Server:
 
     def __init__(self, params):
         self.matrixs = Matrixs(params)
+        self.params = params
         thread = Update_Keys(self.matrixs, params['T'])
         thread.start()
         self.tables = Tables(params)
         self.security = Security() 
+        self.requests_per_second = {}
+
+    # Checks if the requestor has done to much requests.
+    # Returns if there are too much requests.
+    def new_request(self, requestor):
+        print("New request")
+        print(self.requests_per_second)
+        now = datetime.now()
+        current_time = now.strftime(f"{now.hour};{now.minute};{int(now.second/20)}")
+        max_requests_per_second = self.params["Max_Requests_20Second"]
+        if requestor in self.requests_per_second:
+            (old_time, number_tries) = self.requests_per_second[requestor]
+            if old_time == current_time:
+                
+                self.requests_per_second[requestor] = (current_time, number_tries+1)
+                if number_tries+1 > max_requests_per_second:
+                    return True
+        else:
+                self.requests_per_second[requestor] = (current_time, 1)
+        return False
 
     # Gets the message to send and encripts, appending in the end the checksum.
     def get_bytes_to_send(self, message, client_id):
@@ -66,13 +88,25 @@ class Main_Server:
                                                    message_decoded,
                                                    requestor_message_checksum[2])
             if valid:
+                ddos_attack = self.new_request(requestor_message_checksum[0])
                 request = parse_message(message_decoded.decode('utf-8'))
-                (ooids_and_values, errors) = self.handle_request(request)
-                str_to_send = create_response(request.P, ooids_and_values, errors)
-                bytes_to_send = self.get_bytes_to_send(str_to_send, request.client_id)
+                if ddos_attack:
+                    tuple_error = ('0.0', '8')
+                    str_to_send = create_response(request.P, [], [tuple_error])
+                    print("DDOS Attack")
+                    print(str_to_send)
+                    bytes_to_send = self.get_bytes_to_send(str_to_send, request.client_id)
 
-                # Sending a reply to client
-                UDPServerSocket.sendto(bytes_to_send, address)
+                    # Sending a reply to client
+                    UDPServerSocket.sendto(bytes_to_send, address)
+                else:
+                    
+                    (ooids_and_values, errors) = self.handle_request(request)
+                    str_to_send = create_response(request.P, ooids_and_values, errors)
+                    bytes_to_send = self.get_bytes_to_send(str_to_send, request.client_id)
+
+                    # Sending a reply to client
+                    UDPServerSocket.sendto(bytes_to_send, address)
             else:
                 message_string = message_decoded.decode('utf-8')
                 client_id = message_string.split(";")[0]

@@ -35,7 +35,7 @@ def create_response(P,W,R):
     string_list_pairs = '[' + ','.join(str(x) for x in W) + ']'
     string_list_errors = '[' + ','.join(str(x) for x in R) + ']'
 
-    res = ";".join(["server", S, Ns, string_list_security, P, type_response, str(len(W)), string_list_pairs, str(len(R)), string_list_errors])
+    res = ";".join(["agent", S, Ns, string_list_security, P, type_response, str(len(W)), string_list_pairs, str(len(R)), string_list_errors])
     print("[SERVER] Response to client")
     print(res)
     return res
