@@ -207,15 +207,16 @@ class Tables:
             line = ooid[2]
             convert_ooid_to_string = list(map(lambda num : str(num), ooid))
             current_ooid = ".".join(["3"]+convert_ooid_to_string)
-            if line >= numer_lines or column > 6 or line < 1 or column < 0:
-                return ([], (current_ooid, '1'))
-            else:
+            try:
                 entry = self.data[2][line][column]
-                if entry.check_to_read(requestor):
-                    pair = (".".join(["3.2", str(column), str(line), "0"]), str(entry.value))
-                    return (pair, None)
-                else:
-                    return ([], (current_ooid,'4'))
+            except Exception as e:
+                return ([], (current_ooid, '1'))
+
+            if entry.check_to_read(requestor):
+                pair = (".".join(["3.2", str(column), str(line), "0"]), str(entry.value))
+                return (pair, None)
+            else:
+                return ([], (current_ooid,'4'))
 
     def get_data(self, ooid, value, requestor):
         ooids_values = []

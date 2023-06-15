@@ -1,4 +1,4 @@
-from manager_get import main_function_manager
+from manager import main_function_manager
 import unittest
 import time
 import sys

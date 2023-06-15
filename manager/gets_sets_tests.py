@@ -1,5 +1,4 @@
-import time
-from manager_get import main_function_manager
+from manager import main_function_manager
 import unittest
 
 import sys
@@ -55,7 +54,6 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(res.list_errors, [])
      
     def test_Get_SystemTable_Complex(self):
-        res=main_function_manager("manager1", "GET", [('1.3.0','1')] )
         res=main_function_manager("manager1", "GET", [('1.3.0','2'), ('1.5.0','2')] )
 
         self.assertEqual(res.list_args, [('1.3.0', SystemKeySize), ('1.4.0', systemIntervalUpdate),
@@ -84,7 +82,7 @@ class TestStringMethods(unittest.TestCase):
      
     # One client changes the value, and the next sees new value.
     # Server must be inicialize
-    def test_Set_Key(self):
+    def test_Set_Config(self):
         res_before = main_function_manager("manager1", "GET", [('2.3.0','1')] )
         res = main_function_manager("manager0", "SET", [('2.3.0','23')] )
         res_after = main_function_manager("manager1", "GET", [('2.3.0','23')] )
@@ -128,12 +126,13 @@ class TestStringMethods(unittest.TestCase):
 
 debug = False
 if debug:
-    for i in range(52):
-            main_function_manager("manager0", "GET", [('2.2.0','1')] )
-    much_requests = main_function_manager("manager0", "GET", [('2.2.0','1')] )
+    res = main_function_manager("manager0", "SET", [('3.2.6.0', '1')] )
+    #for i in range(52):
+    #        main_function_manager("manager0", "GET", [('2.2.0','1')] )
+    #much_requests = main_function_manager("manager0", "GET", [('2.2.0','1')] )
     print("Erro de muitos pedidos")
-    print(much_requests.list_args)
-    print(much_requests.list_errors)
+    print(res.list_args)
+    print(res.list_errors)
     #request_incomplete  = main_function_manager("manager0", "GET", [('2.4.0','23')] )
     #print("\n\nDebug")
     #print(request_incomplete.list_args)

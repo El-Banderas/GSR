@@ -1,6 +1,10 @@
 
 import numpy as np
 import random
+import functools
+
+import re
+
 
 def print_matrix(matrix, size):
     for row in range(size):
@@ -59,13 +63,27 @@ def generate_xor_matrix(m1, m2, m3, m4, size):
             matrix[line][col] = ((n1 ^ n2) ^ n3) ^ n4
     return matrix
 
+def convert_byte_hexa(byte):
+    byte = f"{bytes([byte])}"
+    two_char = re.search(r"b\'\\x(.+)\'", byte)
+    if two_char:
+        return two_char.group(1)
+    single_char = re.search(r"\'(.+)\'", byte)
+    if single_char:
+        return '0'+single_char.group(1)
+    
+    
+
 def generate_key(array1, array2, size):
     key = [0 for x in range(size)]
     for position in range(size):
         n1 = convert_int_byte(array1[position])
         n2 = convert_int_byte(array2[position])
         key[position] = (n1 ^ n2) 
-    return key
+    bytes_in_string = list(map(lambda byte : convert_byte_hexa(byte), key))
+    
+
+    return ''.join(bytes_in_string)
 
 
 class Matrixs:

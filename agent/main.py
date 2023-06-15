@@ -45,7 +45,7 @@ class Main_Server:
     # Checks if the requestor has done to much requests.
     # Returns if there are too much requests.
     def new_request(self, requestor):
-        print("New request")
+        print("\n\nNew request")
         print(self.requests_per_second)
         now = datetime.now()
         current_time = now.strftime(f"{now.hour};{now.minute};{int(now.second/20)}")
@@ -57,6 +57,8 @@ class Main_Server:
                 self.requests_per_second[requestor] = (current_time, number_tries+1)
                 if number_tries+1 > max_requests_per_second:
                     return True
+            else:
+                self.requests_per_second[requestor] = (current_time, 1)
         else:
                 self.requests_per_second[requestor] = (current_time, 1)
         return False
@@ -125,8 +127,7 @@ class Main_Server:
                     print("Get key") 
                     key = self.matrixs.get_key()
                     # Convert key to string
-                    key = list(map(lambda byte : str(byte), key))
-                    (pair_ooid_value, error) = self.tables.add_key("|".join(key), request.client_id, int(num))
+                    (pair_ooid_value, error) = self.tables.add_key(key, request.client_id, int(num))
                     if len(pair_ooid_value) > 0:
                         pairs_ooids_values.extend(pair_ooid_value)
                     if len(error) > 0:

@@ -23,7 +23,7 @@ def  main_function_manager(client_identifier, type_request, arg_list):
     # TODO: Remover segundo argumento para obrigar a inserir password. Password pode ser configurável
     # Está em comentário duas linhas a seguir
     cipher = security_functions.get_cipher(name_file_with_key, client_identifier)
-    #cipher = security_functions.get_cipher(name_file_with_key, "Cli2")
+    #cipher = security_functions.get_cipher(name_file_with_key)
     if not cipher:
         quit()
     # Cipher is now: [client:Key, server:Key]
@@ -63,10 +63,6 @@ def  main_function_manager(client_identifier, type_request, arg_list):
     except TimeoutError:
         print("Maximum waiting time passed. Server not responding, bye...")
         quit()
-
-    
-
-    msg = "Message from Server {}".format(msgFromServer[0])
 
     msg_string = msgFromServer[0].decode('utf-8')
     if msg_string.count(";") > 3:
